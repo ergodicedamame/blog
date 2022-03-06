@@ -1,0 +1,51 @@
+[
+  {
+    "objectID": "posts/how-to/index.html#folders-and-files",
+    "href": "posts/how-to/index.html#folders-and-files",
+    "title": "Setting up a blog using quarto",
+    "section": "Folders and files",
+    "text": "Folders and files\nThere are a number of files needed for a quarto blog project. The main ones are listed here.\nOther files in the repository are needed for quarto to execute the python notebooks, github pages, etc."
+  },
+  {
+    "objectID": "posts/how-to/index.html#github-pages-ci",
+    "href": "posts/how-to/index.html#github-pages-ci",
+    "title": "Setting up a blog using quarto",
+    "section": "Github pages CI",
+    "text": "Github pages CI\nThe website is re-built (on pushes) and deployed (on merge into main) using github actions, see workflow."
+  },
+  {
+    "objectID": "posts/how-to/index.html#commenting-functionality",
+    "href": "posts/how-to/index.html#commenting-functionality",
+    "title": "Setting up a blog using quarto",
+    "section": "Commenting functionality",
+    "text": "Commenting functionality\nProvided by giscus, which links to github Discussions, see quarto docs and links."
+  },
+  {
+    "objectID": "posts/how-to/index.html#writing-posts",
+    "href": "posts/how-to/index.html#writing-posts",
+    "title": "Setting up a blog using quarto",
+    "section": "Writing posts",
+    "text": "Writing posts\n\nAll posts should be stored as .qmd files, indeed .Rmd and .ipynb are included in the .gitignore.\njupytext allows to link .ipnb and .qmd notebooks, one simply needs to configure it, or use jupytext --to ipynb index.qmd for individual posts.\nevery post should have its own folder in the posts/ folder, as outlined in quarto docs.\nquarto allows to render the blog locally as one works on a new post (or any other changes) using quarto preview. This is live-reloaded whenever we save."
+  },
+  {
+    "objectID": "posts/post-with-code/index.html",
+    "href": "posts/post-with-code/index.html",
+    "title": "Post With Code",
+    "section": "",
+    "text": "This is a post with executable code.\n\n\nReusehttps://creativecommons.org/licenses/by/4.0/"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Notes and posts",
+    "section": "",
+    "text": "… by Gregorio B and Dayal S on DS, and other.\n\n\n\n\n  \n\n\n\n\nSetting up a blog using quarto\n\n\nNotes on how the site was set up. And how to blog using quarto.\n\n\n\n\n\n\n03-06-2022\n\n\n\n\n\n\n  \n\n\n\n\nPost With Code\n\n\n\n\n\n\n\n\n\n03-06-2022\n\n\n\n\n\n\nNo matching items"
+  },
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "This site contains assorted notes and posts on ML, in the broadest sense possible, and other random topics. We don’t really have a clear theme or reader in mind, and are not sure it deserves to be called a blog. It might instead turn out to be a good place to organise our thougts and keep some notes, in which case the reader is us in six months time.\nThis site is powered by quarto, github and all the other cool tech they in turn leverage."
+  }
+]

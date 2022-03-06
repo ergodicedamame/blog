@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss  xmlns:atom="http://www.w3.org/2005/Atom" 
+      xmlns:media="http://search.yahoo.com/mrss/" 
+      xmlns:content="http://purl.org/rss/1.0/modules/content/" 
+      xmlns:dc="http://purl.org/dc/elements/1.1/" 
+      version="2.0">
+<channel>
+<title>BS DS</title>
+<link>https://bs-ds.github.io/blog//index.html</link>
+<atom:link href="https://bs-ds.github.io/blog//index.xml" rel="self" type="application/rss+xml"/>
+<description>Notes and posts by Gregorio B and Dayal S on DS, and other.</description>
+<generator>quarto-0.9.71</generator>
+<lastBuildDate>Fri, 03 Jun 2022 00:00:00 GMT</lastBuildDate>
+<item>
+  <title>Setting up a blog using quarto</title>
+  <link>https://bs-ds.github.io/blog//posts/how-to/index.html</link>
+  <description><![CDATA[ 
+
+
+<p><em>This is a minimal, living document to remind ourselves how we set up the blog, and how to write on it. We will update it as needed. It may turn out to be useful more generally, but the best place to look is the <a href="https://quarto.org/">quarto</a> site.</em></p>
+<section id="folders-and-files" class="level2">
+<h2 class="anchored" data-anchor-id="folders-and-files">Folders and files</h2>
+<p>There are a number of files needed for a quarto blog project. The main ones are listed <a href="https://quarto.org/docs/websites/website-blog.html#blog-projects">here</a>.</p>
+<p>Other files in the repository are needed for quarto to execute the python notebooks, github pages, etc.</p>
+</section>
+<section id="github-pages-ci" class="level2">
+<h2 class="anchored" data-anchor-id="github-pages-ci">Github pages CI</h2>
+<p>The website is re-built (on pushes) and deployed (on merge into main) using github actions, see <a href="https://github.com/bs-ds/blog/blob/main/.github/workflows/ci.yaml">workflow</a>.</p>
+</section>
+<section id="commenting-functionality" class="level2">
+<h2 class="anchored" data-anchor-id="commenting-functionality">Commenting functionality</h2>
+<p>Provided by <a href="https://giscus.app/">giscus</a>, which links to github Discussions, see quarto <a href="https://quarto.org/docs/output-formats/html-basics.html#commenting">docs</a> and links.</p>
+</section>
+<section id="writing-posts" class="level2">
+<h2 class="anchored" data-anchor-id="writing-posts">Writing posts</h2>
+<ul>
+<li>All posts should be stored as .qmd files, indeed .Rmd and .ipynb are included in the .gitignore.</li>
+<li>jupytext allows to <a href="https://jupytext.readthedocs.io/en/latest/formats.html#quarto">link</a> .ipnb and .qmd notebooks, one simply needs to configure it, or use <code>jupytext --to ipynb index.qmd</code> for individual posts.</li>
+<li>every post should have its own folder in the posts/ folder, as outlined in quarto docs.</li>
+<li>quarto allows to render the blog locally as one works on a new post (or any other changes) using <code>quarto preview</code>. This is live-reloaded whenever we save.</li>
+</ul>
+
+
+</section>
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div quarto-reuse="quarto-reuse" class="quarto-appendix-contents"><a rel="license" href="https://creativecommons.org/licenses/by/4.0/">https://creativecommons.org/licenses/by/4.0/</a></div></section></div> ]]></description>
+  <category>how-to</category>
+  <guid>https://bs-ds.github.io/blog//posts/how-to/index.html</guid>
+  <pubDate>Fri, 03 Jun 2022 00:00:00 GMT</pubDate>
+  <media:content url="https://bs-ds.github.io/blog///posts/how-to/quarto.png" medium="image" type="image/png" height="35" width="144"/>
+</item>
+<item>
+  <title>Post With Code</title>
+  <dc:creator>Harlow Malloc</dc:creator>
+  <link>https://bs-ds.github.io/blog//posts/post-with-code/index.html</link>
+  <description><![CDATA[ 
+
+<p>This is a post with executable code.</p>
+
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div quarto-reuse="quarto-reuse" class="quarto-appendix-contents"><a rel="license" href="https://creativecommons.org/licenses/by/4.0/">https://creativecommons.org/licenses/by/4.0/</a></div></section></div> ]]></description>
+  <category>news</category>
+  <category>code</category>
+  <category>analysis</category>
+  <guid>https://bs-ds.github.io/blog//posts/post-with-code/index.html</guid>
+  <pubDate>Fri, 03 Jun 2022 00:00:00 GMT</pubDate>
+  <media:content url="https://bs-ds.github.io/blog///posts/post-with-code/image.jpg" medium="image" type="image/jpeg"/>
+</item>
+</channel>
+</rss>
