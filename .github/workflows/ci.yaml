@@ -33,3 +33,4 @@ jobs:
       with:
         deploy_key: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./docs
+        publish_branch: pages
