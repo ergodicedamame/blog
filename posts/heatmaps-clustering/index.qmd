@@ -1,0 +1,151 @@
+---
+title: "Heatmaps done right"
+subtitle: "A note on clustering distance matrices before plotting. Think sns.clustermap using altair."
+date: "08/03/2022"
+image: "visualization.png"
+categories: [visualisation, how-to]
+jupyter:
+  jupytext:
+    text_representation:
+      extension: .qmd
+      format_name: quarto
+      format_version: '1.0'
+      jupytext_version: 1.13.7
+  kernelspec:
+    display_name: Python 3.8.12 ('heatmap')
+    language: python
+    name: python3
+---
+
+Given a distance matrix, i.e. a symmetric matrix of distances between observations, if the indices of the observations are arbitrary, or more generally there is no variable by which we want to order the observations, then plotting a heatmap using the default ordering (of the indices) is often not very useful. A better approach is to cluster the observations, and use the new ordering. This is what `sns.clustermap` offers, see [docs](https://seaborn.pydata.org/generated/seaborn.clustermap.html).
+
+::: {.column-margin}
+_Question:_ Is there another/better way to re-order the indices? I don't think anything purely algebraic would work, as the before and after objects are fundamentally different matrices.
+:::
+
+We will use the USA presidential speeches to walk through the clustering, and then do the plotting using altair for interactivity - as much as I like seaborn (and it's [next generation API](https://seaborn.pydata.org/nextgen/) looks very cool), interactivity is great. Then again from the src, it looks like a lot of thought has been put into `clustermap`, so there might be other reasons to use it.
+
+This is therefore a trivial post, but I often find myself wanting to do this. Indeed, I will probably refer back to it myself. The data is chosen arbitrarily, and the reordering doesn't seem to add much in this case, though one could probably have fun checking political party, etc.
+
+## Imports
+
+```{python}
+import altair as alt
+from nltk.corpus import inaugural
+import pandas as pd
+# from scipy.spatial.distance import pdist
+from scipy.cluster import hierarchy
+```
+
+## Data
+
+Let us quickly get the presidential addresses from nltk, and then compute the Jaccard distance on the 5-shingles.
+
+First we download and import the data.
+
+```{python}
+#| eval: false
+import nltk
+nltk.download("inaugural")
+```
+
+```{python}
+ids = inaugural.fileids()
+data = [
+    {
+        "id": i, 
+        "year": id.split("-")[0], 
+        "president": (id.split("-")[1]).split(".")[0],
+        "text": inaugural.raw(fileids=id)
+    } 
+    for i, id in enumerate(ids) 
+    ]
+df = pd.DataFrame(data)
+```
+
+Then we shingle the text.
+
+```{python}
+def get_shingles(x, size=5):
+    x = x + (size * " ")
+    shingles = [x[i:i+size] for i in range(0, len(x) - size)]
+    return shingles
+```
+
+```{python}
+df["shingles"] = df["text"].apply(get_shingles)
+```
+
+And finally we can compute the Jaccard similarity.
+
+```{python}
+def get_similarity(x, y, precision=3):
+    a = set(x) 
+    b = set(y)
+    return round(len(a.intersection(b)) / len(a.union(b)), precision)
+```
+
+```{python}
+df_pairs = df.copy()
+df_pairs['key'] = 0
+df_pairs = df_pairs.merge(df_pairs, on="key").drop(columns=["key"])
+# df_pairs = df_pairs.loc[df_pairs["id_x"] < df_pairs["id_y"], :]
+
+df_pairs["similarity"] = df_pairs.apply(lambda row: get_similarity(row["shingles_x"], row["shingles_y"]), axis=1)
+
+df_pairs.drop(columns=["text_x", "text_y", "shingles_x", "shingles_y"], inplace=True)
+```
+
+```{python}
+df_pairs.head()
+```
+
+## Clustering
+
+Clustering is straight forward. What we are interested in is the "optimal" ordering.
+
+```{python}
+mat_pairs = df_pairs.pivot(index="id_x", columns = "id_y", values="similarity").to_numpy()
+
+Z = hierarchy.linkage(mat_pairs, optimal_ordering=True)
+
+reordering = hierarchy.leaves_list(Z)
+```
+
+## Plotting
+
+### By date
+
+Note that our indices are actually ordered by date. This might be an interesting dimension and plotting the distances by date might reveal some insight from the data. Generally however, indices will be randomly assigned, in which case there is never a good reason to order by the original indices.
+
+```{python}
+w = 500
+```
+
+```{python}
+#| label: fig-unordered
+#| fig-cap: "Heatmap using default order."
+#| cap-location: margin
+
+alt.Chart(df_pairs).mark_rect().encode(
+    x='id_x:O',
+    y='id_y:O',
+    color=alt.Color('similarity:Q', scale=alt.Scale(scheme='reds')),
+    tooltip=["president_x", "year_x", "president_y", "year_y", "similarity"]
+).properties(width=w, height=w).interactive()
+```
+
+### By distance
+
+```{python}
+#| label: fig-ordered
+#| fig-cap: "Heatmap using re-ordering from clustering."
+#| cap-location: margin
+
+alt.Chart(df_pairs).mark_rect().encode(
+    x=alt.X('id_x:O', sort=alt.Sort(reordering)),
+    y=alt.Y('id_y:O', sort=alt.Sort(reordering)),
+    color=alt.Color('similarity:Q', scale=alt.Scale(scheme='reds')),
+    tooltip=["president_x", "year_x", "president_y", "year_y", "similarity"]
+).properties(width=w, height=w).interactive()
+```
