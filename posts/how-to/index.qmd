@@ -11,7 +11,7 @@ _This is a minimal, living document to remind ourselves how we set up the blog, 
 
 ## Folders and files
 
-There are a number of files needed for a quarto blog project. The main ones are listed [here](https://quarto.org/docs/websites/website-blog.html#blog-projects).
+There are a number of files needed for a quarto blog project, as we can see by taking a look at the repository. The main ones are listed [here](https://quarto.org/docs/websites/website-blog.html#blog-projects).
 
 Other files in the repository are needed for quarto to execute the python notebooks, github pages, etc.
 
@@ -29,3 +29,5 @@ Provided by [giscus](https://giscus.app/), which links to github Discussions, se
 - jupytext allows to [link](https://jupytext.readthedocs.io/en/latest/formats.html#quarto) .ipnb and .qmd notebooks, one simply needs to configure it, or use `jupytext --to ipynb index.qmd` for individual posts.
 - every post should have its own folder in the posts/ folder, as outlined in quarto docs.
 - quarto allows to render the blog locally as one works on a new post (or any other changes) using `quarto preview`. This is live-reloaded whenever we save.
+
+NOTE: Any rendered content, in the docs/ folder, should not be pushed to the repository, but we cannot (simply) add it to the .gitignore, as this would break the CI which pushes the contents of docs/ to the pages branch.

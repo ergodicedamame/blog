@@ -60,7 +60,7 @@
       }
 
       const options = {
-        valueNames: ['listing-date','listing-title','listing-subtitle','listing-image',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-file-modified-sort'] }],
+        valueNames: ['listing-date','listing-title','listing-subtitle','listing-image','listing-categories',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-file-modified-sort'] }],
         
         searchColumns: ["listing-date","listing-title","listing-author","listing-subtitle","listing-image","listing-description","listing-categories"],
       };
@@ -116,7 +116,7 @@
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
         
-    <h5 class="quarto-listing-category-title">Categories</h5><div class="quarto-listing-category category-default"><div class="category" data-category="">All <span class="quarto-category-count">(2)</span></div><div class="category" data-category="analysis">analysis <span class="quarto-category-count">(1)</span></div><div class="category" data-category="code">code <span class="quarto-category-count">(1)</span></div><div class="category" data-category="how-to">how-to <span class="quarto-category-count">(1)</span></div><div class="category" data-category="news">news <span class="quarto-category-count">(1)</span></div></div></div>
+    <h5 class="quarto-listing-category-title">Categories</h5><div class="quarto-listing-category category-default"><div class="category" data-category="">All <span class="quarto-category-count">(1)</span></div><div class="category" data-category="how-to">how-to <span class="quarto-category-count">(1)</span></div></div></div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 <header id="title-block-header" class="quarto-title-block default">
@@ -125,7 +125,7 @@
 <p>… by Gregorio B and Dayal S on DS, and other.</p>
 <div id="listing-listings" class="quarto-listing">
 <div class="list quarto-listing-default">
-<div class="quarto-post image-right" data-index="0" data-categories="how-to" data-listing-date-sort="1654214400000" data-listing-file-modified-sort="1646603613145" data-listing-reading-time-sort="0.985">
+<div class="quarto-post image-right" data-index="0" data-categories="how-to" data-listing-date-sort="1654214400000" data-listing-file-modified-sort="1646604475555" data-listing-reading-time-sort="1.235">
 <div class="thumbnail">
 <p><a href="./posts/how-to/index.html"> <img src="./posts/how-to/quarto.png" class="thumnail-image"> </a></p>
 </div>
@@ -138,6 +138,12 @@ Setting up a blog using quarto
 Notes on how the site was set up. And how to blog using quarto.
 </div>
 </a>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('how-to'); return false;">
+how-to
+</div>
+</div>
+<a href="./posts/how-to/index.html"> </a>
 </div>
 <div class="metadata">
 <a href="./posts/how-to/index.html">
@@ -145,28 +151,6 @@ Notes on how the site was set up. And how to blog using quarto.
 03-06-2022
 </div>
 </a><p><a href="./posts/how-to/index.html"></a></p>
-</div>
-</div>
-<div class="quarto-post image-right" data-index="1" data-categories="news,code,analysis" data-listing-date-sort="1654214400000" data-listing-file-modified-sort="1646603613149" data-listing-reading-time-sort="0.035">
-<div class="thumbnail">
-<p><a href="./posts/post-with-code/index.html"> <img src="./posts/post-with-code/image.jpg" class="thumnail-image"> </a></p>
-</div>
-<div class="body">
-<a href="./posts/post-with-code/index.html">
-<h3 class="no-anchor listing-title">
-Post With Code
-</h3>
-<div class="listing-subtitle">
-
-</div>
-</a>
-</div>
-<div class="metadata">
-<a href="./posts/post-with-code/index.html">
-<div class="listing-date">
-03-06-2022
-</div>
-</a><p><a href="./posts/post-with-code/index.html"></a></p>
 </div>
 </div>
 </div>

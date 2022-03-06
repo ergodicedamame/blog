@@ -20,7 +20,7 @@
 <p><em>This is a minimal, living document to remind ourselves how we set up the blog, and how to write on it. We will update it as needed. It may turn out to be useful more generally, but the best place to look is the <a href="https://quarto.org/">quarto</a> site.</em></p>
 <section id="folders-and-files" class="level2">
 <h2 class="anchored" data-anchor-id="folders-and-files">Folders and files</h2>
-<p>There are a number of files needed for a quarto blog project. The main ones are listed <a href="https://quarto.org/docs/websites/website-blog.html#blog-projects">here</a>.</p>
+<p>There are a number of files needed for a quarto blog project, as we can see by taking a look at the repository. The main ones are listed <a href="https://quarto.org/docs/websites/website-blog.html#blog-projects">here</a>.</p>
 <p>Other files in the repository are needed for quarto to execute the python notebooks, github pages, etc.</p>
 </section>
 <section id="github-pages-ci" class="level2">
@@ -39,6 +39,7 @@
 <li>every post should have its own folder in the posts/ folder, as outlined in quarto docs.</li>
 <li>quarto allows to render the blog locally as one works on a new post (or any other changes) using <code>quarto preview</code>. This is live-reloaded whenever we save.</li>
 </ul>
+<p>NOTE: Any rendered content, in the docs/ folder, should not be pushed to the repository, but we cannot (simply) add it to the .gitignore, as this would break the CI which pushes the contents of docs/ to the pages branch.</p>
 
 
 </section>
@@ -47,23 +48,6 @@
   <guid>https://bs-ds.github.io/blog//posts/how-to/index.html</guid>
   <pubDate>Fri, 03 Jun 2022 00:00:00 GMT</pubDate>
   <media:content url="https://bs-ds.github.io/blog///posts/how-to/quarto.png" medium="image" type="image/png" height="35" width="144"/>
-</item>
-<item>
-  <title>Post With Code</title>
-  <dc:creator>Harlow Malloc</dc:creator>
-  <link>https://bs-ds.github.io/blog//posts/post-with-code/index.html</link>
-  <description><![CDATA[ 
-
-<p>This is a post with executable code.</p>
-
-
-<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div quarto-reuse="quarto-reuse" class="quarto-appendix-contents"><a rel="license" href="https://creativecommons.org/licenses/by/4.0/">https://creativecommons.org/licenses/by/4.0/</a></div></section></div> ]]></description>
-  <category>news</category>
-  <category>code</category>
-  <category>analysis</category>
-  <guid>https://bs-ds.github.io/blog//posts/post-with-code/index.html</guid>
-  <pubDate>Fri, 03 Jun 2022 00:00:00 GMT</pubDate>
-  <media:content url="https://bs-ds.github.io/blog///posts/post-with-code/image.jpg" medium="image" type="image/jpeg"/>
 </item>
 </channel>
 </rss>
