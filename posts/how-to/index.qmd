@@ -1,0 +1,31 @@
+---
+title: "Setting up a blog using quarto"
+subtitle: "Notes on how the site was set up. And how to blog using quarto."
+# author: ""
+date: "06/03/2022"
+image: "quarto.png"
+categories: [how-to]
+---
+
+_This is a minimal, living document to remind ourselves how we set up the blog, and how to write on it. We will update it as needed. It may turn out to be useful more generally, but the best place to look is the [quarto](https://quarto.org/) site._
+
+## Folders and files
+
+There are a number of files needed for a quarto blog project. The main ones are listed [here](https://quarto.org/docs/websites/website-blog.html#blog-projects).
+
+Other files in the repository are needed for quarto to execute the python notebooks, github pages, etc.
+
+## Github pages CI
+
+The website is re-built (on pushes) and deployed (on merge into main) using github actions, see [workflow](https://github.com/bs-ds/blog/blob/main/.github/workflows/ci.yaml).
+
+## Commenting functionality
+
+Provided by [giscus](https://giscus.app/), which links to github Discussions, see quarto [docs](https://quarto.org/docs/output-formats/html-basics.html#commenting) and links.
+
+## Writing posts
+
+- All posts should be stored as .qmd files, indeed .Rmd and .ipynb are included in the .gitignore.
+- jupytext allows to [link](https://jupytext.readthedocs.io/en/latest/formats.html#quarto) .ipnb and .qmd notebooks, one simply needs to configure it, or use `jupytext --to ipynb index.qmd` for individual posts.
+- every post should have its own folder in the posts/ folder, as outlined in quarto docs.
+- quarto allows to render the blog locally as one works on a new post (or any other changes) using `quarto preview`. This is live-reloaded whenever we save.

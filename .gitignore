@@ -1,1 +1,8 @@
 /.quarto/
+
+# linked notebooks
+*.ipynb
+*.Rmd
+
+# rendered blog
+docs/
