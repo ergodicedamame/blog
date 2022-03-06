@@ -3,15 +3,20 @@ project:
   output-dir: docs
 
 website:
-  title: "bsds"
+  title: BS DS
+  description: "Notes and posts by Gregorio B and Dayal S on DS, and other."
+  site-url: https://bs-ds.github.io/blog/
   navbar:
     right:
       - about.qmd
+      - icon: rss
+        href: index.xml
       - icon: github
-        href: https://github.com/
-      - icon: twitter
-        href: https://twitter.com
+        href: https://github.com/bs-ds/blog/
+  # page-footer:
+  #   right: 
+  #     - text: "Notes and posts by Gregorio B and Dayal S on DS, and other. CC-BY."
 format:
   html:
-    theme: cosmo
+    theme: litera
     css: styles.css
