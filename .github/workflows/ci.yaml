@@ -1,0 +1,35 @@
+name: CI
+on:
+  push:
+    branches:
+      - main # filter so we only deploy when there is a push to master
+  pull_request: # no filters on pull requests
+  workflow_dispatch:
+
+jobs:     
+  lint-render-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: copy repository contents
+      uses: actions/checkout@main
+      with:
+        persist-credentials: false
+    
+    # - name: set up ci: quarto, etc.
+
+    - name: set up quarto 
+    - uses: quarto-dev/quarto-actions/install-quarto@main
+
+    # - name: lint notebooks
+
+    - name: render blog
+    - run: |
+        quarto render
+
+    - name: deploy blog
+      if: github.event_name == 'push'
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        deploy_key: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docs
