@@ -19,12 +19,12 @@ jobs:
     # - name: set up ci: quarto, etc.
 
     - name: set up quarto 
-    - uses: quarto-dev/quarto-actions/install-quarto@main
+      uses: quarto-dev/quarto-actions/install-quarto@main
 
     # - name: lint notebooks
 
     - name: render blog
-    - run: |
+      run: |
         quarto render
 
     - name: deploy blog
