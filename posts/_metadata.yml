@@ -11,7 +11,7 @@ license: "CC BY"
 toc: true
 
 reference-location: margin
-citation-location: margin
+# citation-location: margin
 
 comments:
   giscus: 

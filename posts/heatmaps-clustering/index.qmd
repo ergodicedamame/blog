@@ -4,6 +4,7 @@ subtitle: "A note on clustering distance matrices before plotting. Think sns.clu
 date: "08/03/2022"
 image: "visualization.png"
 categories: [visualisation, how-to]
+bibliography: ../references.bib
 jupyter:
   jupytext:
     text_representation:
@@ -25,12 +26,20 @@ _Question:_ Is there another/better way to re-order the indices? I don't think a
 
 We will use the USA presidential speeches to walk through the clustering, and then do the plotting using altair for interactivity - as much as I like seaborn (and it's [next generation API](https://seaborn.pydata.org/nextgen/) looks very cool), interactivity is great. Then again from the src, it looks like a lot of thought has been put into `clustermap`, so there might be other reasons to use it.
 
-This is therefore a trivial post, but I often find myself wanting to do this. Indeed, I will probably refer back to it myself. The data is chosen arbitrarily, and the reordering doesn't seem to add much in this case, though one could probably have fun checking political party, etc.
+This is therefore a trivial post, but will hopefully turn out to be a useful note for when we want to do this in future. The data is chosen arbitrarily, and the reordering doesn't seem to add much in this case, though one could probably have fun checking political party, etc.
+
+## Set up
+
+```{python}
+#| eval: false
+!pip install -r requirements.txt
+```
 
 ## Imports
 
 ```{python}
 import altair as alt
+import nltk
 from nltk.corpus import inaugural
 import pandas as pd
 # from scipy.spatial.distance import pdist
@@ -39,13 +48,14 @@ from scipy.cluster import hierarchy
 
 ## Data
 
-Let us quickly get the presidential addresses from nltk, and then compute the Jaccard distance on the 5-shingles.
+Let us quickly get the presidential addresses from nltk, and then compute the Jaccard distance on the 5-shingles[^1].
+
+[^1]: Note that the data itself is not the focus here. We just need a distance matrix in order to show how it can be reordered. We have chosen to work with a matrix representing the distances between texts in a given corpus, and to consider Jaccard distance on shingles. _Shingles_ are substrings of a certain length that are created by passing a moving window along the text. This choice of distance between texts is common when working with web data, and can deal with mispellings and sequential nature of text (to some extent). See e.g. [@schutze2008introduction, Section 19.6].
 
 First we download and import the data.
 
 ```{python}
 #| eval: false
-import nltk
 nltk.download("inaugural")
 ```
 
