@@ -1,10 +1,9 @@
 ---
 title: "Heatmaps done right"
 subtitle: "A note on clustering distance matrices before plotting. Think sns.clustermap using altair."
-date: "08/03/2022"
+date: "2022/03/08"
 image: "visualization.png"
 categories: [visualisation, how-to]
-bibliography: ../references.bib
 jupyter:
   jupytext:
     text_representation:
