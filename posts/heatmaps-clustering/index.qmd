@@ -18,12 +18,13 @@ jupyter:
 ---
 
 Given a distance matrix, i.e. a symmetric matrix of distances between observations, if the indices of the observations are arbitrary, or more generally there is no variable by which we want to order the observations, then plotting a heatmap using the default ordering (of the indices) is often not very useful. 
-A better approach is to cluster the observations, and use the new ordering. 
-This is what `sns.clustermap` offers, see [docs](https://seaborn.pydata.org/generated/seaborn.clustermap.html).
+If we do so, we get a heatmap where the rows and columns are ordered abritrarily and the plot itself may end up looking like we have sampled a value at random for each cell. 
+In many cases, a better approach is to cluster the observations, and use the new ordering, as this will lead to a heatmap in which similar observations are grouped.
+This is what `sns.clustermap` offers, see the [docs](https://seaborn.pydata.org/generated/seaborn.clustermap.html).
 
 ::: {.column-margin}
-_Question:_ Is there another/better way to re-order the indices? 
-I don't think anything purely algebraic would work, as the before and after objects are fundamentally different matrices.
+_Question:_ Is there another better way to re-order the indices? 
+This probably depends on the the context and the meaning of the heatmap, but anything purely algebraic would probably not work, as the before and after objects are fundamentally different matrices.
 :::
 
 We will use the USA presidential speeches to walk through the clustering, and then do the plotting using altair for interactivity - as much as I like seaborn (and it's [next generation API](https://seaborn.pydata.org/nextgen/) looks very cool), interactivity is great. 
