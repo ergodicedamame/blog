@@ -8,7 +8,7 @@ listing:
     - "title desc"
   type: default
   fields: [date, title, subtitle, image, categories]
-  date-format: dd-MM-yyyy
+  date-format: DD-MM-YYYY
   categories: true
   sort-ui: false
   filter-ui: false
