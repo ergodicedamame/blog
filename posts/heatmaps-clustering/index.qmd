@@ -17,15 +17,20 @@ jupyter:
     name: python3
 ---
 
-Given a distance matrix, i.e. a symmetric matrix of distances between observations, if the indices of the observations are arbitrary, or more generally there is no variable by which we want to order the observations, then plotting a heatmap using the default ordering (of the indices) is often not very useful. A better approach is to cluster the observations, and use the new ordering. This is what `sns.clustermap` offers, see [docs](https://seaborn.pydata.org/generated/seaborn.clustermap.html).
+Given a distance matrix, i.e. a symmetric matrix of distances between observations, if the indices of the observations are arbitrary, or more generally there is no variable by which we want to order the observations, then plotting a heatmap using the default ordering (of the indices) is often not very useful. 
+A better approach is to cluster the observations, and use the new ordering. 
+This is what `sns.clustermap` offers, see [docs](https://seaborn.pydata.org/generated/seaborn.clustermap.html).
 
 ::: {.column-margin}
-_Question:_ Is there another/better way to re-order the indices? I don't think anything purely algebraic would work, as the before and after objects are fundamentally different matrices.
+_Question:_ Is there another/better way to re-order the indices? 
+I don't think anything purely algebraic would work, as the before and after objects are fundamentally different matrices.
 :::
 
-We will use the USA presidential speeches to walk through the clustering, and then do the plotting using altair for interactivity - as much as I like seaborn (and it's [next generation API](https://seaborn.pydata.org/nextgen/) looks very cool), interactivity is great. Then again from the src, it looks like a lot of thought has been put into `clustermap`, so there might be other reasons to use it.
+We will use the USA presidential speeches to walk through the clustering, and then do the plotting using altair for interactivity - as much as I like seaborn (and it's [next generation API](https://seaborn.pydata.org/nextgen/) looks very cool), interactivity is great. 
+Then again from the src, it looks like a lot of thought has been put into `clustermap`, so there might be other reasons to use it.
 
-This is therefore a trivial post, but will hopefully turn out to be a useful note for when we want to do this in future. The data is chosen arbitrarily, and the reordering doesn't seem to add much in this case, though one could probably have fun checking political party, etc.
+This is therefore a trivial post, but will hopefully turn out to be a useful note for when we want to do this in future. 
+The data is chosen arbitrarily, and the reordering doesn't seem to add much in this case, though one could probably have fun checking political party, etc.
 
 ## Set up
 
@@ -49,7 +54,11 @@ from scipy.cluster import hierarchy
 
 Let us quickly get the presidential addresses from nltk, and then compute the Jaccard distance on the 5-shingles[^1].
 
-[^1]: Note that the data itself is not the focus here. We just need a distance matrix in order to show how it can be reordered. We have chosen to work with a matrix representing the distances between texts in a given corpus, and to consider Jaccard distance on shingles. _Shingles_ are substrings of a certain length that are created by passing a moving window along the text. This choice of distance between texts is common when working with web data, and can deal with mispellings and sequential nature of text (to some extent). See e.g. [@schutze2008introduction, Section 19.6].
+[^1]: Note that the data itself is not the focus here. 
+We just need a distance matrix in order to show how it can be reordered. 
+We have chosen to work with a matrix representing the distances between texts in a given corpus, and to consider Jaccard distance on shingles. 
+_Shingles_ are substrings of a certain length that are created by passing a moving window along the text. This choice of distance between texts is common when working with web data, and can deal with mispellings and sequential nature of text (to some extent). 
+See e.g. [@schutze2008introduction, Section 19.6].
 
 First we download and import the data.
 
@@ -111,7 +120,8 @@ df_pairs.head()
 
 ## Clustering
 
-Clustering is straight forward. What we are interested in is the "optimal" ordering.
+Clustering is straight forward. 
+What we are interested in is the "optimal" ordering.
 
 ```{python}
 mat_pairs = df_pairs.pivot(index="id_x", columns = "id_y", values="similarity").to_numpy()
@@ -125,7 +135,9 @@ reordering = hierarchy.leaves_list(Z)
 
 ### By date
 
-Note that our indices are actually ordered by date. This might be an interesting dimension and plotting the distances by date might reveal some insight from the data. Generally however, indices will be randomly assigned, in which case there is never a good reason to order by the original indices.
+Note that our indices are actually ordered by date. 
+This might be an interesting dimension and plotting the distances by date might reveal some insight from the data. 
+Generally however, indices will be randomly assigned, in which case there is never a good reason to order by the original indices.
 
 ```{python}
 w = 500
