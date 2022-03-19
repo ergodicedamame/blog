@@ -10,6 +10,11 @@ license: "CC BY"
 
 toc: true
 
+reference-location: margin
+# citation-location: margin
+
+bibliography: ../references.bib
+
 comments:
   giscus: 
     repo: bs-ds/blog
