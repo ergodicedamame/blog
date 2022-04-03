@@ -1,5 +1,12 @@
 [
   {
+    "objectID": "posts/how-to/index.html",
+    "href": "posts/how-to/index.html",
+    "title": "Setting up a blog using quarto",
+    "section": "",
+    "text": "This is a minimal, living document to remind ourselves how we set up the blog, and how to write on it. We will update it as needed. It may turn out to be useful more generally, but the best place to look is the quarto site."
+  },
+  {
     "objectID": "posts/how-to/index.html#folders-and-files",
     "href": "posts/how-to/index.html#folders-and-files",
     "title": "Setting up a blog using quarto",
@@ -28,17 +35,59 @@
     "text": "Writing posts\n\nAll posts should be stored as .qmd files, indeed .Rmd and .ipynb are included in the .gitignore.\njupytext allows to link .ipnb and .qmd notebooks, one simply needs to configure it, or use jupytext --to ipynb index.qmd for individual posts.\nevery post should have its own folder in the posts/ folder, as outlined in quarto docs.\nquarto allows to render the blog locally as one works on a new post (or any other changes) using quarto preview. This is live-reloaded whenever we save.\n\nNOTE: Any rendered content, in the docs/ folder, should not be pushed to the repository, but we cannot (simply) add it to the .gitignore, as this would break the CI which pushes the contents of docs/ to the pages branch."
   },
   {
+    "objectID": "posts/heatmaps-clustering/index.html",
+    "href": "posts/heatmaps-clustering/index.html",
+    "title": "Heatmaps done right",
+    "section": "",
+    "text": "Given a distance matrix, i.e. a symmetric matrix of distances between observations, if the indices of the observations are arbitrary, or more generally there is no variable by which we want to order the observations, then plotting it as a heatmap using the default ordering (of the indices) is often not very useful. If we do so, we get a heatmap where the rows and columns are ordered abritrarily and the plot itself may be hard to interpret. In many cases, a better approach is to cluster the observations and use the new ordering This will lead to a heatmap in which similar observations are grouped. This is what sns.clustermap offers, as seen in the docs.\nNote that the data itself is not the focus here. We just need a distance matrix in order to show how it can be reordered. We will use the USA presidential speeches, and consider distances between texts, to walk through the clustering and then do the plotting using altair for interactivity - as much as we like seaborn (and it’s next generation API looks very cool), interactivity is great! Then again from the source code, it looks like a lot of thought has been put into clustermap, so there might be other reasons to use it."
+  },
+  {
+    "objectID": "posts/heatmaps-clustering/index.html#set-up",
+    "href": "posts/heatmaps-clustering/index.html#set-up",
+    "title": "Heatmaps done right",
+    "section": "Set up",
+    "text": "Set up\n\n!pip install -r requirements.txt"
+  },
+  {
+    "objectID": "posts/heatmaps-clustering/index.html#imports",
+    "href": "posts/heatmaps-clustering/index.html#imports",
+    "title": "Heatmaps done right",
+    "section": "Imports",
+    "text": "Imports\n\nimport altair as alt\nimport nltk\nfrom nltk.corpus import inaugural\nimport pandas as pd\n\n# from scipy.spatial.distance import pdist\nfrom scipy.cluster import hierarchy"
+  },
+  {
+    "objectID": "posts/heatmaps-clustering/index.html#data",
+    "href": "posts/heatmaps-clustering/index.html#data",
+    "title": "Heatmaps done right",
+    "section": "Data",
+    "text": "Data\nLet us quickly get the presidential addresses from nltk, and then compute the Jaccard distance on the 5-shingles1.1 Shingles are substrings of a certain length that are created by passing a moving window along the text. This choice of representation of the texts is common when working with web data, and can deal with mispellings and the sequential nature of text (to some extent). See e.g. (Schütze, Manning, and Raghavan 2008, sec. 19.6).\nFirst we download and import the data.\n\nnltk.download(\"inaugural\")\n\n\nids = inaugural.fileids()\ndata = [\n    {\n        \"id\": i,\n        \"year\": id.split(\"-\")[0],\n        \"president\": (id.split(\"-\")[1]).split(\".\")[0],\n        \"text\": inaugural.raw(fileids=id).lower(),\n    }\n    for i, id in enumerate(ids)\n]\ndf = pd.DataFrame(data)\n\nThen we shingle the text.\n\ndef get_shingles(x, size=5):\n    x = x + (size * \" \")\n    shingles = [x[i : i + size] for i in range(0, len(x) - size)]\n    return shingles\n\n\ndf[\"shingles\"] = df[\"text\"].apply(get_shingles)\n\nAnd finally we can compute the Jaccard similarity.\n\ndef get_similarity(x, y, precision=3):\n    a = set(x)\n    b = set(y)\n    return round(len(a.intersection(b)) / len(a.union(b)), precision)\n\n\ndf_pairs = df.copy()\ndf_pairs[\"key\"] = 0\ndf_pairs = df_pairs.merge(df_pairs, on=\"key\").drop(columns=[\"key\"])\n\ndf_pairs[\"similarity\"] = df_pairs.apply(\n    lambda row: get_similarity(row[\"shingles_x\"], row[\"shingles_y\"]), axis=1\n)\n\ndf_pairs.drop(columns=[\"text_x\", \"text_y\", \"shingles_x\", \"shingles_y\"], inplace=True)\n\n\ndf_pairs.head()\n\n\n\n\n  \n    \n      \n      id_x\n      year_x\n      president_x\n      id_y\n      year_y\n      president_y\n      similarity\n    \n  \n  \n    \n      0\n      0\n      1789\n      Washington\n      0\n      1789\n      Washington\n      1.000\n    \n    \n      1\n      0\n      1789\n      Washington\n      1\n      1793\n      Washington\n      0.071\n    \n    \n      2\n      0\n      1789\n      Washington\n      2\n      1797\n      Adams\n      0.231\n    \n    \n      3\n      0\n      1789\n      Washington\n      3\n      1801\n      Jefferson\n      0.219\n    \n    \n      4\n      0\n      1789\n      Washington\n      4\n      1805\n      Jefferson\n      0.218"
+  },
+  {
+    "objectID": "posts/heatmaps-clustering/index.html#clustering",
+    "href": "posts/heatmaps-clustering/index.html#clustering",
+    "title": "Heatmaps done right",
+    "section": "Clustering",
+    "text": "Clustering\nClustering is straightforward. We are after the “optimal” ordering, i.e. the re-ordering with similar values placed close to each other.\n\nmat_pairs = df_pairs.pivot(index=\"id_x\", columns=\"id_y\", values=\"similarity\").to_numpy()\n\nZ = hierarchy.linkage(mat_pairs, optimal_ordering=True)\n\nreordering = hierarchy.leaves_list(Z)"
+  },
+  {
+    "objectID": "posts/heatmaps-clustering/index.html#plotting",
+    "href": "posts/heatmaps-clustering/index.html#plotting",
+    "title": "Heatmaps done right",
+    "section": "Plotting",
+    "text": "Plotting\n\nBy date\nNote that our indices are actually ordered by date. This might be an interesting dimension and plotting the distances by date might reveal some insight from the data.\n\nw = 500\n\n\n(\n    alt.Chart(df_pairs)\n    .mark_rect()\n    .encode(\n        x=\"id_x:O\",\n        y=\"id_y:O\",\n        color=alt.Color(\"similarity:Q\", scale=alt.Scale(scheme=\"reds\")),\n        tooltip=[\"president_x\", \"year_x\", \"president_y\", \"year_y\", \"similarity\"],\n    )\n    .properties(width=w, height=w)\n    .interactive()\n)\n\n\n\n\n\nFigure 1: Heatmap using default order.\n\n\n\nIndeed, it seems like there are some interesting groups of two or three consecutive terms/presidents with similar inaugural speeches. One could probably have fun checking political party and second terms in office.\nOften however, indices are randomly assigned, in which case there is never a good reason to order by the original indices when plotting.\n\n\nBy distance\n\n(\n    alt.Chart(df_pairs)\n    .mark_rect()\n    .encode(\n        x=alt.X(\"id_x:O\", sort=alt.Sort(reordering)),\n        y=alt.Y(\"id_y:O\", sort=alt.Sort(reordering)),\n        color=alt.Color(\"similarity:Q\", scale=alt.Scale(scheme=\"reds\")),\n        tooltip=[\"president_x\", \"year_x\", \"president_y\", \"year_y\", \"similarity\"],\n    )\n    .properties(width=w, height=w)\n    .interactive()\n)\n\n\n\n\n\nFigure 2: Heatmap using re-ordering from clustering.\n\n\n\nUnfortunately, with our arbitrary choice of data, the reordering doesn’t seem to add much. However, we can still see a single main cluster of similar values that might deserve further inspection and reveal something, as well as at least one other smaller and less homogeneous cluster."
+  },
+  {
     "objectID": "index.html",
     "href": "index.html",
     "title": "Notes and posts",
     "section": "",
-    "text": "… by Gregorio B and Dayal S on DS, and other.\n\n\n\n\n  \n\n\n\n\nSetting up a blog using quarto\n\n\nNotes on how the site was set up. And how to blog using quarto.\n\n\n\n\nhow-to\n\n\n \n\n\n\n\n03-06-2022\n\n\n\n\n\n\nNo matching items"
+    "text": "Heatmaps done right\n\n\nA note on clustering distance matrices before plotting. Think sns.clustermap using altair.\n\n\n\n\nvisualisation\n\n\nhow-to\n\n\n \n\n\n\n\n19-03-2022\n\n\n\n\n\n\n  \n\n\n\n\nSetting up a blog using quarto\n\n\nNotes on how the site was set up. And how to blog using quarto.\n\n\n\n\nhow-to\n\n\n \n\n\n\n\n06-03-2022\n\n\n\n\n\n\nNo matching items"
   },
   {
     "objectID": "about.html",
     "href": "about.html",
     "title": "About",
     "section": "",
-    "text": "This site contains assorted notes and posts on ML, in the broadest sense possible, and other random topics. We don’t really have a clear theme or reader in mind, and are not sure it deserves to be called a blog. It might instead turn out to be a good place to organise our thougts and keep some notes, in which case the reader is us in six months time.\nThis site is powered by quarto, github and all the other cool tech they in turn leverage."
+    "text": "This site is powered by quarto, github and all the other cool tech they in turn leverage."
   }
 ]

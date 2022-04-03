@@ -2,7 +2,7 @@
 title: "Setting up a blog using quarto"
 subtitle: "Notes on how the site was set up. And how to blog using quarto."
 # author: ""
-date: "06/03/2022"
+date: "2022/03/06"
 image: "quarto.png"
 categories: [how-to]
 ---

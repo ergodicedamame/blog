@@ -2,14 +2,18 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://bs-ds.github.io/blog/posts/how-to/index.html</loc>
-    <lastmod>2022-03-06T22:51:06.297Z</lastmod>
+    <lastmod>2022-04-03T08:36:17.724Z</lastmod>
+  </url>
+  <url>
+    <loc>https://bs-ds.github.io/blog/posts/heatmaps-clustering/index.html</loc>
+    <lastmod>2022-04-03T08:36:18.812Z</lastmod>
   </url>
   <url>
     <loc>https://bs-ds.github.io/blog/index.html</loc>
-    <lastmod>2022-03-06T22:51:06.989Z</lastmod>
+    <lastmod>2022-04-03T08:36:19.204Z</lastmod>
   </url>
   <url>
     <loc>https://bs-ds.github.io/blog/about.html</loc>
-    <lastmod>2022-03-06T22:51:07.605Z</lastmod>
+    <lastmod>2022-04-03T08:36:19.804Z</lastmod>
   </url>
 </urlset>
