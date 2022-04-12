@@ -1,9 +1,9 @@
 ---
-title: "Generative vs. discriminative models: what's the difference really?"
+title: "Generative vs. discriminative models"
 subtitle: "Thinking through the differences between generative and discriminative models."
 date: "2022/04/03"
 image: "params.png"
-categories: [factor graphs, ML, theory]
+categories: [factor graphs, PGMs, ML, theory]
 echo: false
 jupyter:
   jupytext:
