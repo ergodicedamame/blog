@@ -32,11 +32,11 @@ import matplotlib.pyplot as plt
 plt.rcParams['text.usetex'] = True
 ```
 
-Looking around, there seem to be multiple definitions of what discriminative and generative models actually are, ranging from too narrow and concrete to outright confusing, as well as lots of claims about advantages and disadvantages of one over the other, but often with little detail or justification. 
+Looking around, there seem to be multiple definitions of what discriminative and generative models actually are, ranging from too narrow to outright confusing, as well as lots of claims about advantages and disadvantages of one over the other, but often with little detail or justification. 
 However, if one ignores the miriad references on this topic and just reads through @bishop2006pattern [Chapter 4] and @minka2005discriminative, one gets a fairly good picture of what's what.
 
 We will work through the definitions and differences by considering _probabilistic (graphical) models_, specifically using the _factor graph_ representation[^1].
-In order to do so, we will focus on _classification_, where we are given a labelled data set $D = \lbrace \left( x^i, y^i \right) \rbrace_N$ with inputs $x^i = \left( x^i_1, \cdots, x^i_n \right)$ and labels $y^i \in \lbrace 0, 1 \rbrace$, and we want $P \left( y = 1 \vert x = \hat x \right)$ for some (new) $\hat x$[^2].
+Throughout, we will focus on _classification_, where we are given a labelled data set $D = \lbrace \left( x^i, y^i \right) \rbrace_N$ with inputs $x^i = \left( x^i_1, \cdots, x^i_n \right)$ and labels $y^i \in \lbrace 0, 1 \rbrace$, and we want $P \left( y = 1 \vert x = \hat x \right)$ for some (new) $\hat x$[^2].
 We should keep in mind that the concepts and the generative-discriminative dichotomy are more general, i.e. they are not restricted to the problem of classification.
 
 [^1]: Factor graphs are a more detailed representation of a probabilistic graphical model that specifies the factorization of the joint probability being modelled.
@@ -50,8 +50,7 @@ See [@bishop2006pattern, Section 1.5.4] for a discussion.
 
 Many references jump straight in and define deterministic and generative models, in the context of classification, via the probabilities that they consider. 
 A _discriminative model_ is defined as one that provides $P \left( y \vert x \right)$ directly.
-The name comes from the fact that we can view the distribution (together with the decision to choose the most probable value) as directly discriminating the value of the target $y$ for any given instance $x$. 
-This can be represented as a factor graph.
+The name comes from the fact that we can view the distribution (together with the decision to choose the most probable value) as directly discriminating the value of the target $y$ for any given instance $x$.
 
 ```{python}
 #| fig-cap: Discriminative model, as used for prediction.
@@ -108,12 +107,12 @@ strict digraph {
 Source(model_generative_str)
 ```
 
-The more general definition of a generative model, and the one that we will use is of a model that can generate data via _ancestral sampling_, i.e. sampling from the priors and passing the sampled values through the graphical model.
+The more general definition is that a generative model is one that can generate data via _ancestral sampling_, i.e. sampling from the priors and passing the sampled values through the graphical model.
 This includes the case above, but we could also turn our discriminative model into a generative one by adding a factor for $P \left( x \right)$, thus turning it into a model of the joint distribution $P \left( x, y \right)$. 
 Put differently, the factorization used in the definition of the generative model above is not what makes it a generative model. 
 It is rather the fact that it models the joint distribution.
 That being said, if one is building a model for prediction, or to infer causal impact of $x$ on $y$, and observes $x$ ($= \hat x$) then adding a prior on $x$ to the discriminative model is generally not of much use.
-In order to distinguish between the generative model and the extended discriminative model, which is also a generative model, Mitchell refers to the former as a _Bayes classifier_ given that it uses Bayes theorem to recover $P \left( y \vert x \right)$ [@mitchell2020generative].
+In order to distinguish between the (first) generative model and the extended discriminative model, which is also a generative model, Mitchell refers to the former as a _Bayes classifier_ given that it uses Bayes theorem to recover $P \left( y \vert x \right)$ [@mitchell2020generative].
 
 ```{python}
 #| label: fg-discr-extended
@@ -144,16 +143,16 @@ Source(model_discriminative_str_extended)
 ```
 
 Note that we sometimes also find people stating that generative models are ones that capture the causal process by which the actual data ($D$) is generated. 
-Despite devoting a lot of pages to the discriminative and generative approaches, @bishop2006pattern also uses this definition in Section 8.1.2, albeit in passing.
-Similarly, it is not uncommon to hear people refer to the models considered in McElreath's Statistical Rethinking [-@mcelreath2020statistical] as generative models, given all the space devoted to the causal DAGs and data generation, even though the models are actually discriminative regressions. 
+Despite devoting a lot of pages to the discriminative and generative models, @bishop2006pattern also uses this definition in Section 8.1.2, albeit in passing.
+Similarly, it is not uncommon to hear people refer to the models considered in McElreath's Statistical Rethinking [-@mcelreath2020statistical] as generative models, given all the space devoted to the causal DAGs and data generation, even though the models are mostly discriminative regressions. 
 Indeed, while it is true that one might build a generative model by thinking about the causal process, it could be that the causal _data generation process_ requires $P \left( y \vert x \right)$ rather than $P \left( x \vert y \right)$. 
-We therefore distinguish between generative models and processes.
+We therefore distinguish between generative models and generative processes.
 
 ## Generative models consider a more restictive parameter space
 
 Let's now look at the fundamental difference between the two model types by considering them in all generality and focusing on their parametrisation as done by @minka2005discriminative.
 
-Let's write the generative model with parameters as
+We write the generative model with parameters as
 $$
 P_1 \left( x, y \vert \theta \right) = P_{11} \left( x \vert y, \theta \right) P_{12} \left( y \vert \theta \right).
 $$
@@ -214,7 +213,7 @@ Alternatively, we can use maximum likelihood estimation to find $\hat \theta$.
 The BIASlab couse nicely explains the different approaches with examples [@devries2021bmlip].
 
 Now let's write the discriminative model, with parameters, as $P_{21} \left( y \vert x, \theta \right)$. 
-In order to compare it with the generative model, we expand the discriminative model with a probability over $x$ and a second parameter in order to obtain the joint distribution
+In order to compare it with the generative model, we extend the discriminative model by adding a probability over $x$ and a second parameter in order to obtain the joint distribution
 $$
 P_2 \left( x, y \vert \theta, \phi \right) = P_{21} \left( y \vert x, \theta \right) P_{22} \left( x \vert \phi \right),
 $$
@@ -237,7 +236,7 @@ P_d \left( D, \theta, \phi \right)    &= P_{01} \left( \theta \right) P_{02} \le
                                 &= \left( P_{01} \left( \theta \right) \prod_i P_{21} \left( y_i \vert x_i, \theta \right) \right) \left(P_{02} \left( \phi \right) \prod_i P_{22} \left( x_i \vert \phi \right) \right),
 \end{align*}
 $$
-where we have used the iid assumption on the data, and then inferring $P \left( \theta, \phi \vert D \right)$.
+and inferring $P \left( \theta, \phi \vert D \right)$.
 
 ```{python}
 #| fig-cap: Parametrised, extended discriminative model with training data plate.
@@ -285,7 +284,7 @@ We note that, due to the independence assumption, estimation of $\theta$ and $\p
 $$
 P_d \left( D, \theta, \phi \right) =: P^1 \left( y, \theta \vert x \right) P^2 \left( x, \phi \right),
 $$
-then we see that Bayes' update rule simplifies, namely
+then we see that Bayes' rule simplifies, that is
 $$
 \begin{align*}
 P \left( \theta, \phi \vert D \right)   &= \frac{P_d \left( D, \theta, \phi \right)}{\sum_{\theta, \phi} P_d \left( D, \theta, \phi \right)} \\
@@ -340,16 +339,16 @@ plt.title("Parameter space")
 plt.show()
 ```
 
-Thus $\hat \theta$ (or equivalently $P \left( \theta \vert D \right)$) is unaffected by the estimation of $\hat \phi$, and is the same as what we would have obtained by performing inference on the original, non-extended discriminative model.
+Thus $\hat \theta$ (or equivalently $P \left( \theta \vert D \right)$) is unaffected by the estimation of $\hat \phi$ and is the same as what we would have obtained by performing inference on the original, non-extended discriminative model.
 
-We can now see that the fundamental difference between the two models is down to the discriminative one considering a larger parameter space without the constraint $\theta = \phi$.
+We see that the fundamental difference between the two models is down to the discriminative one considering a larger parameter space without the constraint $\theta = \phi$.
 This reduces the (statistical) bias, but introduces variance.
 
 We have just shown that the generative model is more biased, but this is a more fundamental difference than what is usually discussed. Indeed, the joint distribution considered by the generative model is often hard to work with in practice and therefore further simplifying assumptions are often necessary, or preferable, in order to make inference tractable. This can lead to further bias of the generative model, which we will consider next.
 
 ## Generative models require more assumptions
 
-In order to understand why generative models require more modelling assumptions to make inference manageable, we will consider the case of Boolean inputs $x = \left( x_1, \cdots, x_n \right)$, $x_j \in \lbrace 0, 1 \rbrace$.
+To understand why generative models require more modelling assumptions in order to make inference manageable, we will consider the case of Boolean inputs $x = \left( x_1, \cdots, x_n \right)$, $x_j \in \lbrace 0, 1 \rbrace$.
 
 It can be instructive to update the factor graphs and draw some of the individual components of the input.
 
@@ -405,7 +404,7 @@ strict digraph {
 Source(model_generative_multi_str)
 ```
 
-Let us now look at the parameters necessary for the generative model by first considering $P\left( x \vert y \right)$ represented as a conditional probability table with $x$ represented as a single vector.
+Let us now look at the parameters necessary for the generative model by first considering the conditional probability table for $P\left( x \vert y \right)$ with $x$ represented as a single vector.
 
 |                      |                 |                   |
 |----------------------|-----------------|-------------------|
@@ -416,7 +415,7 @@ Let us now look at the parameters necessary for the generative model by first co
 | $x = (1, \cdots, 1)$ | $\theta^0_{2^n}$ | $\theta^1_{2^n}$   |
 
 We see that we have $2 \times 2^n = 2^{n + 1}$ parameters. 
-The conditional probability constraints (on the columns) bring this count down to $2 \left( 2^n - 1\right)$.
+The (conditional) probability constraints (on the columns) bring this count down to $2 \left( 2^n - 1\right)$.
 
 The other factor in the generative model, $P \left( y \right)$, is not an issue, as we only have one effective parameter given $y$ is a Boolean variable.
 
@@ -430,7 +429,7 @@ Here the conditional probability table is flipped.
 | $y = 1$ | $\theta^1_{1}$       | $\cdots$ | $\theta^1_{2^n}$      |
 
 Simply flipping the conditionality leads to $2^n$ effective parameters, again using the conditional probability constraints. 
-This is less than for the generative model. 
+This is less parameters than those for the generative model. 
 For large $n$, essentially half as many.
 
 What is often done in generative models is to add further simplifying assumptions.
@@ -493,7 +492,7 @@ and the conditional probability constraints bring the number of parameters per i
 Thus, overall we have $2 n$ parameters to estimate.
 This is now less than the $2^n$ of the discriminative model (provided $n > 2$).
 
-On top of the number of parameters to estimate, in order to reliably estimate the parameters, we need to observe each distinct instance multiple times.
+On top of the number of parameters to estimate, in order to reliably estimate them, we need to observe each distinct instance multiple times.
 This is discussed in [@mitchell2020generative].
 
 We thus can, and often do, introduce futher bias in generative models in order to make them tractable.
@@ -503,17 +502,17 @@ A consequence of this is that generative models can be less accurate, if they (i
 
 ## Generative models can deal with missing data
 
-Let's turn to the fact that generative models can deal with missing data, which is often mentioned.
+Let's turn to the fact, which is often mentioned, that generative models can deal with missing data.
 What this means is that they can still make predictions if given a vector of inputs $\hat x = \left( \hat x_1, \cdots, \hat x_k, \bar x_{k+1}, \cdots, \bar x_n \right) = \left( \hat x_o, \bar x_m \right)$, where $\bar x_m$ are missing, whereas discriminative models can't.
 
-When it comes to "predicting" $\hat y$ given $\hat x$, we need the posterior predictive distribution, namely
+When it comes to predicting $\hat y$ given $\hat x$, we need the posterior predictive distribution, namely
 $$
 \begin{align*}
 P \left( \hat y \vert \hat x, D \right) &= \int_\Theta P \left( \hat y \vert \hat x, D, \theta \right) P \left( \theta \vert D \right) \mathrm{d} \theta \\
                                         &= \int_\Theta P \left( \hat y \vert \hat x, \theta \right) P \left( \theta \vert D \right) \mathrm{d} \theta
 \end{align*}
 $$
-because we assume that the past and future observations are conditionally independent given $\theta$.
+where we assume that the past and future observations are conditionally independent given $\theta$.
 
 In the case of missing inputs, we want to consider
 $$
@@ -556,7 +555,7 @@ Source(model_discr_pred_str)
 In the case of discriminative models, we have no way of evaluating the necessary probabilities because we only have $P_{21} \left( y \vert x, \theta \right)$. 
 We therefore cannot obtain $P \left( \bar x_m \vert \hat x_o, \theta \right)$.
 We would need to instead resort to some form of imputation. 
-Interestingly, this equates to making assumptions about the distribution $P \left( x \right)$, which we would instead have if we consider an extended discriminative model.
+This equates to making assumptions about the distribution $P \left( x \right)$, which we would instead have if we consider an extended discriminative model.
 These can indeed deal with missing observations, given they model the full joint distribution, explicitly via $P \left( y \vert x \right)$ and $P \left(x \right)$.
 
 ```{python}
