@@ -2,7 +2,7 @@
 title: "Generative vs. discriminative models"
 subtitle: "Thinking through the differences between generative and discriminative models."
 date: "2022/04/03"
-image: "params.png"
+image: "graph.png"
 categories: [factor graphs, PGMs, ML, theory]
 echo: false
 jupyter:
@@ -203,7 +203,11 @@ digraph G {
 }
 """
 
-Source(model_generative_params_str)
+dot = Source(model_generative_params_str)
+
+# dot.render(filename="graph", format="png")
+
+dot
 ```
 
 Alternatively, we can use maximum likelihood estimation to find $\hat \theta$. 
