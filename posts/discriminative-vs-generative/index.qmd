@@ -150,7 +150,7 @@ We therefore distinguish between generative models and generative processes.
 
 ## Generative models consider a more restictive parameter space
 
-Let's now look at the fundamental difference between the two model types by considering them in all generality and focusing on their parametrisation as done by @minka2005discriminative.
+Let's now look at the fundamental difference between the two model types by considering them in all generality, and focusing on their parametrisation as done by @minka2005discriminative.
 
 We write the generative model, with parameters, as
 $$
