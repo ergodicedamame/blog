@@ -33,8 +33,8 @@ plt.rcParams['text.usetex'] = True
 ```
 
 Generative and discriminative models are known to have complementary strenghts.
-Indeed, much has been written about their differences, though not always as clearly as one would hope.
-Following @lasserre2006principled and @minka2005discriminative, we will show how they can be seen to be at different ends of a spectrum, and then discuss some of their differences in detail.
+A lot has been written comparing these two paradigms, sometimes more clearly than others.
+Following @minka2005discriminative and @lasserre2006principled, we will show how they can be seen to be at different ends of a spectrum, and then discuss some of their differences in detail.
 
 We will work through the definitions and differences by considering _probabilistic (graphical) models_, specifically using the _factor graph_ representation[^1].
 Throughout, we will focus on _classification_, where we are given a labelled data set $D = \lbrace \left( x^i, y^i \right) \rbrace_N$ with inputs $x^i = \left( x^i_1, \cdots, x^i_n \right)$ and labels $y^i \in \lbrace 0, 1 \rbrace$, and we want $P \left( y = 1 \vert x = \hat x, D \right)$ for some (new) $\hat x$[^2].
