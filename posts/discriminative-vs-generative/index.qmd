@@ -1,7 +1,7 @@
 ---
 title: "Generative vs. discriminative models"
 subtitle: "Thinking through the differences between generative and discriminative models."
-date: "2022/05/29"
+date: "2022/06/13"
 image: "graph.png"
 categories: [ML, theory, factor graphs, PGMs]
 echo: false
@@ -33,7 +33,6 @@ plt.rcParams['text.usetex'] = True
 ```
 
 Generative and discriminative models are known to have complementary strenghts.
-A lot has been written comparing these two paradigms, sometimes more clearly than others.
 Following @minka2005discriminative and @lasserre2006principled, we will show how they can be seen to be at different ends of a spectrum, and then discuss some of their differences in detail.
 
 We will work through the definitions and differences by considering _probabilistic (graphical) models_, specifically using the _factor graph_ representation[^1].
