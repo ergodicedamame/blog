@@ -6,15 +6,306 @@
       version="2.0">
 <channel>
 <title>BS DS</title>
-<link>https://bs-ds.github.io/blog//index.html</link>
-<atom:link href="https://bs-ds.github.io/blog//index.xml" rel="self" type="application/rss+xml"/>
+<link>https://bs-ds.github.io/blog/index.html</link>
+<atom:link href="https://bs-ds.github.io/blog/index.xml" rel="self" type="application/rss+xml"/>
 <description>Notes and posts by Gregorio B and Dayal S on DS, and other.</description>
-<generator>quarto-0.9.180</generator>
-<lastBuildDate>Sat, 19 Mar 2022 00:00:00 GMT</lastBuildDate>
+<generator>quarto-0.9.577</generator>
+<lastBuildDate>Mon, 13 Jun 2022 00:00:00 GMT</lastBuildDate>
+<item>
+  <title>Generative vs. discriminative models</title>
+  <link>https://bs-ds.github.io/blog/posts/discriminative-vs-generative/index.html</link>
+  <description><![CDATA[ 
+
+
+
+<p>Generative and discriminative models are known to have complementary strenghts. Following <span class="citation" data-cites="minka2005discriminative">Minka (2005)</span> and <span class="citation" data-cites="lasserre2006principled">Lasserre, Bishop, and Minka (2006)</span>, we will show how they can be seen to be at different ends of a spectrum, and then discuss some of their differences in detail.</p>
+<div class="page-columns page-full"><p>We will work through the definitions and differences by considering <em>probabilistic (graphical) models</em>, specifically using the <em>factor graph</em> representation<sup>1</sup>. Throughout, we will focus on <em>classification</em>, where we are given a labelled data set <img src="https://latex.codecogs.com/png.latex?D%20=%20%5Clbrace%20%5Cleft(%20x%5Ei,%20y%5Ei%20%5Cright)%20%5Crbrace_N"> with inputs <img src="https://latex.codecogs.com/png.latex?x%5Ei%20=%20%5Cleft(%20x%5Ei_1,%20%5Ccdots,%20x%5Ei_n%20%5Cright)"> and labels <img src="https://latex.codecogs.com/png.latex?y%5Ei%20%5Cin%20%5Clbrace%200,%201%20%5Crbrace">, and we want <img src="https://latex.codecogs.com/png.latex?P%20%5Cleft(%20y%20=%201%20%5Cvert%20x%20=%20%5Chat%20x,%20D%20%5Cright)"> for some (new) <img src="https://latex.codecogs.com/png.latex?%5Chat%20x"><sup>2</sup>. The definitions and the generative-discriminative dichotomy are however more general, i.e.&nbsp;they are not restricted to the problem of classification.</p><div class="no-row-height column-margin column-container"><li id="fn1"><p><sup>1</sup>&nbsp;Factor graphs are a more detailed representation of a probabilistic graphical model that specifies the factorization of the joint probability being modelled. See e.g. <span class="citation" data-cites="loeliger2004introduction">Loeliger (2004)</span>.</p></li><li id="fn2"><p><sup>2</sup>&nbsp;Note that actually determining which class to assign to <img src="https://latex.codecogs.com/png.latex?%5Chat%20x"> requires a final decision. We will ignore this as well as <em>discriminant functions</em>, which combine the inference and the decision steps. See <span class="citation" data-cites="bishop2006pattern">(Bishop 2006, sec. 1.5.4)</span> for a discussion.</p></li></div></div>
+<section id="generative-models-can-be-used-to-generate-synthetic-data" class="level2">
+<h2 class="anchored" data-anchor-id="generative-models-can-be-used-to-generate-synthetic-data">Generative models can be used to generate synthetic data</h2>
+<p>A <em>discriminative model</em> is one that provides <img src="https://latex.codecogs.com/png.latex?P%20%5Cleft(%20y%20%5Cvert%20x%20%5Cright)"> directly. The name comes from the fact that we can view the distribution (together with the decision to choose the most probable value) as directly discriminating the value of the target <img src="https://latex.codecogs.com/png.latex?y"> for any given instance <img src="https://latex.codecogs.com/png.latex?x">.</p>
+<div class="cell" data-execution_count="4">
+<div class="cell-output cell-output-display" data-execution_count="3">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://bs-ds.github.io/blog/posts/discriminative-vs-generative/index_files/figure-html/cell-5-output-1.svg" class="img-fluid figure-img"></p>
+<p></p><p></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Mirorring the definition of a discriminative model, a <em>generative model</em> is instead often defined as one that provides the joint probability <img src="https://latex.codecogs.com/png.latex?P%20%5Cleft(%20x,%20y%20%5Cright)"> in the form <img src="https://latex.codecogs.com/png.latex?P%20%5Cleft(%20x%20%5Cvert%20y%20%5Cright)P%20%5Cleft(%20y%20%5Cright)">, on which one can then use Bayes’ theorem to obtain <img src="https://latex.codecogs.com/png.latex?P%20%5Cleft(%20y%20%5Cvert%20x%20%5Cright)%20%5Cpropto%20P%20%5Cleft(%20x%20%5Cvert%20y%20%5Cright)P%20%5Cleft(%20y%20%5Cright)."> The graph representation for such a model is shown below.</p>
+<div class="cell" data-execution_count="5">
+<div class="cell-output cell-output-display" data-execution_count="4">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://bs-ds.github.io/blog/posts/discriminative-vs-generative/index_files/figure-html/cell-6-output-1.svg" class="img-fluid figure-img"></p>
+<p></p><p></p>
+</figure>
+</div>
+</div>
+</div>
+<p>A good reference on classification, which introduces and compares these approaches, is <span class="citation" data-cites="bishop2006pattern">Bishop (2006, chap. 4)</span>.</p>
+<p>The more general definition is that a generative model is one that can generate data via <em>ancestral sampling</em>, i.e.&nbsp;sampling from the priors and passing the sampled values through the graphical model. This includes the definition above, which also has a choice of factorisation. We can also turn our discriminative model into a generative one by adding a factor for <img src="https://latex.codecogs.com/png.latex?P%20%5Cleft(%20x%20%5Cright)">, such that it too models the joint distribution <img src="https://latex.codecogs.com/png.latex?P%20%5Cleft(%20x,%20y%20%5Cright)">. Put differently, the factorization used in the definition of the generative model above is not what makes it a generative model. It is rather the fact that it models the joint distribution. In order to distinguish between the (first) generative model and the extended discriminative model, which is also a generative model, Mitchell refers to the former as a <em>Bayes classifier</em> given that it uses Bayes theorem to recover <img src="https://latex.codecogs.com/png.latex?P%20%5Cleft(%20y%20%5Cvert%20x%20%5Cright)"> <span class="citation" data-cites="mitchell2020generative">(Mitchell 2020)</span>.</p>
+<div class="cell" data-execution_count="6">
+<div class="cell-output cell-output-display" data-execution_count="5">
+<div id="fg-discr-extended" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="https://bs-ds.github.io/blog/posts/discriminative-vs-generative/index_files/figure-html/fg-discr-extended-output-1.svg" class="img-fluid figure-img"></p>
+<p></p><p></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Note that we sometimes also find people stating that generative models are ones that capture the causal process by which the actual data (<img src="https://latex.codecogs.com/png.latex?D">) is generated. While it is true that one might build a generative model by thinking about the causal process, it could be that the causal <em>data generation process</em> requires <img src="https://latex.codecogs.com/png.latex?P%20%5Cleft(%20y%20%5Cvert%20x%20%5Cright)"> rather than <img src="https://latex.codecogs.com/png.latex?P%20%5Cleft(%20x%20%5Cvert%20y%20%5Cright)">. We therefore distinguish between generative models and generative processes.</p>
+</section>
+<section id="generative-models-consider-a-more-restictive-parameter-space" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="generative-models-consider-a-more-restictive-parameter-space">Generative models consider a more restictive parameter space</h2>
+<p>Let’s now look at the fundamental difference between the two model types by considering them in all generality, and focusing on their parametrisation as done by <span class="citation" data-cites="minka2005discriminative">Minka (2005)</span>.</p>
+<p>We write the generative model, with parameters, as</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0AP_1%20%5Cleft(%20x,%20y%20%5Cvert%20%5Ctheta%20%5Cright)%20=%20P_%7B11%7D%20%5Cleft(%20x%20%5Cvert%20y,%20%5Ctheta%20%5Cright)%20P_%7B12%7D%20%5Cleft(%20y%20%5Cvert%20%5Ctheta%20%5Cright).%0A"></p>
+<p>We can train the model, i.e.&nbsp;perform inference, to obtain the posterior probability <img src="https://latex.codecogs.com/png.latex?P%20%5Cleft(%20%5Ctheta%20%5Cvert%20D%20%5Cright)"> by considering the joint distribution</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0A%5Cbegin%7Balign*%7D%0AP_g%20%5Cleft(%20D,%20%5Ctheta%20%5Cright)%20%20%20%20&amp;=%20P_%7B01%7D%20%5Cleft(%20%5Ctheta%20%5Cright)%20P%20%5Cleft(%20D%20%5Cvert%20%5Ctheta%20%5Cright)%20%5C%5C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20&amp;=%20P_%7B01%7D%20%5Cleft(%20%5Ctheta%20%5Cright)%20%5Cprod_i%20P_1%20%5Cleft(%20x_i,%20y_i%20%5Cvert%20%5Ctheta%20%5Cright)%20%5C%5C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20&amp;=%20P_%7B01%7D%20%5Cleft(%20%5Ctheta%20%5Cright)%20%5Cprod_i%20P_%7B11%7D%20%5Cleft(%20x_i%20%5Cvert%20y_i,%20%5Ctheta%20%5Cright)%20P_%7B12%7D%20%5Cleft(%20y_i%20%5Cvert%20%5Ctheta%20%5Cright),%0A%5Cend%7Balign*%7D%0A"></p>
+<p>where we have used the iid assumption on the data.</p>
+<div class="cell" data-execution_count="7">
+<div class="cell-output cell-output-display" data-execution_count="6">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://bs-ds.github.io/blog/posts/discriminative-vs-generative/index_files/figure-html/cell-8-output-1.svg" class="img-fluid figure-img"></p>
+<p></p><p></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Alternatively, we can use maximum likelihood estimation to find <img src="https://latex.codecogs.com/png.latex?%5Chat%20%5Ctheta">. The BIASlab couse nicely explains the different approaches with examples <span class="citation" data-cites="devries2021bmlip">(de Vries, Kouw, and Koudahl 2021)</span>.</p>
+<p>Let’s now write the discriminative model, with parameters, as <img src="https://latex.codecogs.com/png.latex?P_%7B21%7D%20%5Cleft(%20y%20%5Cvert%20x,%20%5Ctheta%20%5Cright)">. In order to compare it with the generative model, we extend the discriminative model by adding a probability over <img src="https://latex.codecogs.com/png.latex?x"> and a second parameter in order to obtain the joint distribution</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0AP_2%20%5Cleft(%20x,%20y%20%5Cvert%20%5Ctheta,%20%5Cphi%20%5Cright)%20=%20P_%7B21%7D%20%5Cleft(%20y%20%5Cvert%20x,%20%5Ctheta%20%5Cright)%20P_%7B22%7D%20%5Cleft(%20x%20%5Cvert%20%5Cphi%20%5Cright),%0A"></p>
+<p>but consider the same joint distribution by setting</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0AP_%7B21%7D%20%5Cleft(%20y%20%5Cvert%20x,%20%5Ctheta%20%5Cright)%20=%20%5Cfrac%7BP_1%20%5Cleft(%20x,%20y%20%5Cvert%20%5Ctheta%20%5Cright)%7D%7B%5Csum_y%20P_1%20%5Cleft(%20x,%20y%20%5Cvert%20%5Ctheta%20%5Cright)%7D%0A"></p>
+<p>and</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0AP_%7B22%7D%20%5Cleft(%20x%20%5Cvert%20%5Cphi%20%5Cright)%20=%20%5Csum_y%20P_1%20%5Cleft(%20x,%20y%20%5Cvert%20%5Cphi%20%5Cright).%0A"></p>
+<p>The parameters <img src="https://latex.codecogs.com/png.latex?%5Ctheta"> and <img src="https://latex.codecogs.com/png.latex?%5Cphi"> are of the same type, but (for now) assumed independent. We can again obtain the posterior distributions for the parameters by considering the joint distribution</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0A%5Cbegin%7Balign*%7D%0AP_d%20%5Cleft(%20D,%20%5Ctheta,%20%5Cphi%20%5Cright)%20%20%20%20&amp;=%20P_%7B01%7D%20%5Cleft(%20%5Ctheta%20%5Cright)%20P_%7B02%7D%20%5Cleft(%20%5Cphi%20%5Cright)%20P%20%5Cleft(%20D%20%5Cvert%20%5Ctheta,%20%5Cphi%20%5Cright)%20%5C%5C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20&amp;=%20P_%7B01%7D%20%5Cleft(%20%5Ctheta%20%5Cright)%20P_%7B02%7D%20%5Cleft(%20%5Cphi%20%5Cright)%20%5Cprod_i%20P_2%20%5Cleft(%20x_i,%20y_i%20%5Cvert%20%5Ctheta,%20%5Cphi%20%5Cright)%20%5C%5C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20&amp;=%20P_%7B01%7D%20%5Cleft(%20%5Ctheta%20%5Cright)%20P_%7B02%7D%20%5Cleft(%20%5Cphi%20%5Cright)%20%5Cprod_i%20P_%7B21%7D%20%5Cleft(%20y_i%20%5Cvert%20x_i,%20%5Ctheta%20%5Cright)%20P_%7B22%7D%20%5Cleft(%20x_i%20%5Cvert%20%5Cphi%20%5Cright)%20%5C%5C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20&amp;=%20%5Cleft(%20P_%7B01%7D%20%5Cleft(%20%5Ctheta%20%5Cright)%20%5Cprod_i%20P_%7B21%7D%20%5Cleft(%20y_i%20%5Cvert%20x_i,%20%5Ctheta%20%5Cright)%20%5Cright)%20%5Cleft(P_%7B02%7D%20%5Cleft(%20%5Cphi%20%5Cright)%20%5Cprod_i%20P_%7B22%7D%20%5Cleft(%20x_i%20%5Cvert%20%5Cphi%20%5Cright)%20%5Cright),%0A%5Cend%7Balign*%7D%0A"></p>
+<p>and inferring <img src="https://latex.codecogs.com/png.latex?P%20%5Cleft(%20%5Ctheta,%20%5Cphi%20%5Cvert%20D%20%5Cright)">.</p>
+<div class="cell" data-execution_count="8">
+<div class="cell-output cell-output-display" data-execution_count="7">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://bs-ds.github.io/blog/posts/discriminative-vs-generative/index_files/figure-html/cell-9-output-1.svg" class="img-fluid figure-img"></p>
+<p></p><p></p>
+</figure>
+</div>
+</div>
+</div>
+<p>We note that, due to the independence assumption, estimation of <img src="https://latex.codecogs.com/png.latex?%5Ctheta"> and <img src="https://latex.codecogs.com/png.latex?%5Cphi"> decouples, namely if we use the factorization above to define</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0AP_d%20%5Cleft(%20D,%20%5Ctheta,%20%5Cphi%20%5Cright)%20=:%20P%5E1%20%5Cleft(%20y,%20%5Ctheta%20%5Cvert%20x%20%5Cright)%20P%5E2%20%5Cleft(%20x,%20%5Cphi%20%5Cright),%0A"></p>
+<p>then we see that Bayes’ rule simplifies, that is</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0A%5Cbegin%7Balign*%7D%0AP%20%5Cleft(%20%5Ctheta,%20%5Cphi%20%5Cvert%20D%20%5Cright)%20%20%20&amp;=%20%5Cfrac%7BP_d%20%5Cleft(%20D,%20%5Ctheta,%20%5Cphi%20%5Cright)%7D%7B%5Csum_%7B%5Ctheta,%20%5Cphi%7D%20P_d%20%5Cleft(%20D,%20%5Ctheta,%20%5Cphi%20%5Cright)%7D%20%5C%5C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20&amp;=%20%5Cfrac%7BP%5E1%20%5Cleft(%20y,%20%5Ctheta%20%5Cvert%20x%20%5Cright)%20P%5E2%20%5Cleft(%20x,%20%5Cphi%20%5Cright)%7D%7B%5Csum_%7B%5Ctheta%20,%20%5Cphi%7D%20P%5E1%20%5Cleft(%20y,%20%5Ctheta%20%5Cvert%20x%20%5Cright)%20P%5E2%20%5Cleft(%20x,%20%5Cphi%20%5Cright)%7D%20%5C%5C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20&amp;=%20%5Cfrac%7BP%5E1%20%5Cleft(%20y,%20%5Ctheta%20%5Cvert%20x%20%5Cright)%7D%7B%5Csum_%5Ctheta%20P%5E1%20%5Cleft(%20y,%20%5Ctheta%20%5Cvert%20x%20%5Cright)%20%7D%20%5Cfrac%7BP%5E2%20%5Cleft(%20x,%20%5Cphi%20%5Cright)%7D%7B%5Csum_%5Cphi%20P%5E2%20%5Cleft(%20x,%20%5Cphi%20%5Cright)%7D%20%5C%5C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20&amp;=:%20P%20%5Cleft(%20%5Ctheta%20%5Cvert%20D%20%5Cright)%20P%20%5Cleft(%20%5Cphi%20%5Cvert%20x%20%5Cright).%0A%5Cend%7Balign*%7D%0A"></p>
+<div class="cell page-columns page-full" data-execution_count="9">
+
+<div class="no-row-height column-margin column-container"><div class="cell-output cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://bs-ds.github.io/blog/posts/discriminative-vs-generative/index_files/figure-html/cell-10-output-1.png" width="211" height="142" class="figure-img"></p>
+<p></p><p></p>
+</figure>
+</div>
+</div></div></div>
+<p>Thus <img src="https://latex.codecogs.com/png.latex?%5Chat%20%5Ctheta"> (or equivalently <img src="https://latex.codecogs.com/png.latex?P%20%5Cleft(%20%5Ctheta%20%5Cvert%20D%20%5Cright)">) is unaffected by the estimation of <img src="https://latex.codecogs.com/png.latex?%5Chat%20%5Cphi"> and is the same as what we would have obtained by performing inference on the original, non-extended discriminative model.</p>
+<p>We see that the fundamental difference between the two models is down to the discriminative one considering a larger parameter space without the constraint <img src="https://latex.codecogs.com/png.latex?%5Ctheta%20=%20%5Cphi">. This reduces the (statistical) bias, but introduces variance.</p>
+<p>Interestingly, there is no need to assume independence of <img src="https://latex.codecogs.com/png.latex?%5Ctheta"> and <img src="https://latex.codecogs.com/png.latex?%5Cphi">. Considering a joint <img src="https://latex.codecogs.com/png.latex?P%20%5Cleft(%20%5Ctheta,%20%5Cphi%20%5Cright)"> allows us to work with “hybrid” models.</p>
+</section>
+<section id="generative-models-require-more-assumptions" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="generative-models-require-more-assumptions">Generative models require more assumptions</h2>
+<p>We have just shown that the generative model can be seen as considering a reduced parameter space. Furthermore, compared with the discriminative disctribution <img src="https://latex.codecogs.com/png.latex?P_%7B21%7D%20%5Cleft(%20y%20%5Cvert%20x%20,%20%5Ctheta%20%5Cright)">, the joint distribution considered by the generative model is often hard to work with in practice and further simplifying assumptions are often necessary, or preferable, in order to make inference tractable.</p>
+<p>To understand why generative models require more modelling assumptions, we will consider the case of Boolean inputs <img src="https://latex.codecogs.com/png.latex?x%20=%20%5Cleft(%20x_1,%20%5Ccdots,%20x_n%20%5Cright)">, <img src="https://latex.codecogs.com/png.latex?x_j%20%5Cin%20%5Clbrace%200,%201%20%5Crbrace">.</p>
+<p>It can be instructive to update the factor graphs and draw some of the individual components of the input.</p>
+<div class="cell" data-execution_count="10">
+<div class="cell-output cell-output-display" data-execution_count="9">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://bs-ds.github.io/blog/posts/discriminative-vs-generative/index_files/figure-html/cell-11-output-1.svg" class="img-fluid figure-img"></p>
+<p></p><p></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell" data-execution_count="11">
+<div class="cell-output cell-output-display" data-execution_count="10">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://bs-ds.github.io/blog/posts/discriminative-vs-generative/index_files/figure-html/cell-12-output-1.svg" class="img-fluid figure-img"></p>
+<p></p><p></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Let us now look at the parameters necessary for the generative model by first considering the conditional probability table for <img src="https://latex.codecogs.com/png.latex?P%5Cleft(%20x%20%5Cvert%20y%20%5Cright)"> with <img src="https://latex.codecogs.com/png.latex?x"> represented as a single vector.</p>
+<table class="table">
+<tbody>
+<tr class="odd">
+<td></td>
+<td><img src="https://latex.codecogs.com/png.latex?y%20=%200"></td>
+<td><img src="https://latex.codecogs.com/png.latex?y%20=%201"></td>
+</tr>
+<tr class="even">
+<td><img src="https://latex.codecogs.com/png.latex?x%20=%20(0,%20%5Ccdots,%200)"></td>
+<td><img src="https://latex.codecogs.com/png.latex?%5Ctheta%5E0_%7B1%7D"></td>
+<td><img src="https://latex.codecogs.com/png.latex?%5Ctheta%5E1_%7B1%7D"></td>
+</tr>
+<tr class="odd">
+<td><img src="https://latex.codecogs.com/png.latex?x%20=%20(1,%20%5Ccdots,%200)"></td>
+<td><img src="https://latex.codecogs.com/png.latex?%5Ctheta%5E0_%7B2%7D"></td>
+<td><img src="https://latex.codecogs.com/png.latex?%5Ctheta%5E1_%7B2%7D"></td>
+</tr>
+<tr class="even">
+<td><img src="https://latex.codecogs.com/png.latex?%5Ccdots"></td>
+<td><img src="https://latex.codecogs.com/png.latex?%5Ccdots"></td>
+<td><img src="https://latex.codecogs.com/png.latex?%5Ccdots"></td>
+</tr>
+<tr class="odd">
+<td><img src="https://latex.codecogs.com/png.latex?x%20=%20(1,%20%5Ccdots,%201)"></td>
+<td><img src="https://latex.codecogs.com/png.latex?%5Ctheta%5E0_%7B2%5En%7D"></td>
+<td><img src="https://latex.codecogs.com/png.latex?%5Ctheta%5E1_%7B2%5En%7D"></td>
+</tr>
+</tbody>
+</table>
+<p>We see that we have <img src="https://latex.codecogs.com/png.latex?2%20%5Ctimes%202%5En%20=%202%5E%7Bn%20+%201%7D"> parameters. The (conditional) probability constraints (on the columns) bring this count down to <img src="https://latex.codecogs.com/png.latex?2%20%5Cleft(%202%5En%20-%201%5Cright)">.</p>
+<p>The other factor in the generative model, <img src="https://latex.codecogs.com/png.latex?P%20%5Cleft(%20y%20%5Cright)">, is not an issue, as we only have one effective parameter given <img src="https://latex.codecogs.com/png.latex?y"> is a Boolean variable.</p>
+<p>For the discriminative model, we instead have to consider <img src="https://latex.codecogs.com/png.latex?P%20%5Cleft(%20y%20%5Cvert%20x%20%5Cright)">. Here the conditional probability table is flipped.</p>
+<table class="table">
+<tbody>
+<tr class="odd">
+<td></td>
+<td><img src="https://latex.codecogs.com/png.latex?x%20=%20(0,%20%5Ccdots,%200)"></td>
+<td><img src="https://latex.codecogs.com/png.latex?%5Ccdots"></td>
+<td><img src="https://latex.codecogs.com/png.latex?x%20=%20(1,%20%5Ccdots,%201)"></td>
+</tr>
+<tr class="even">
+<td><img src="https://latex.codecogs.com/png.latex?y%20=%200"></td>
+<td><img src="https://latex.codecogs.com/png.latex?%5Ctheta%5E0_%7B1%7D"></td>
+<td><img src="https://latex.codecogs.com/png.latex?%5Ccdots"></td>
+<td><img src="https://latex.codecogs.com/png.latex?%5Ctheta%5E0_%7B2%5En%7D"></td>
+</tr>
+<tr class="odd">
+<td><img src="https://latex.codecogs.com/png.latex?y%20=%201"></td>
+<td><img src="https://latex.codecogs.com/png.latex?%5Ctheta%5E1_%7B1%7D"></td>
+<td><img src="https://latex.codecogs.com/png.latex?%5Ccdots"></td>
+<td><img src="https://latex.codecogs.com/png.latex?%5Ctheta%5E1_%7B2%5En%7D"></td>
+</tr>
+</tbody>
+</table>
+<p>Simply flipping the conditionality, and again using the conditional probability constraints, leads to <img src="https://latex.codecogs.com/png.latex?2%5En"> effective parameters. This is less parameters than those for the generative model. For large <img src="https://latex.codecogs.com/png.latex?n">, essentially half as many.</p>
+<p>What is often done in generative models is to add further simplifying assumptions. In the Naive Bayes classifier for example, we assume each <img src="https://latex.codecogs.com/png.latex?x_i"> is conditionally independent of all other <img src="https://latex.codecogs.com/png.latex?x_%7B-i%7D"> given <img src="https://latex.codecogs.com/png.latex?y">. Together with the product rule, this gives</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0AP%20%5Cleft(x%20%5Cvert%20y%20%5Cright)%20=%20%5Cprod_i%20P%20%5Cleft(%20x_i%20%5Cvert%20y%20%5Cright).%0A"></p>
+<p>We can visualise this more granular factorization of the conditional probability by drawing the factor graph. This time using plate notation.</p>
+<div class="cell" data-execution_count="12">
+<div class="cell-output cell-output-display" data-execution_count="11">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://bs-ds.github.io/blog/posts/discriminative-vs-generative/index_files/figure-html/cell-13-output-1.svg" class="img-fluid figure-img"></p>
+<p></p><p></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Now, each <img src="https://latex.codecogs.com/png.latex?x_i"> has its own conditional probability table, which is simply</p>
+<table class="table">
+<tbody>
+<tr class="odd">
+<td></td>
+<td><img src="https://latex.codecogs.com/png.latex?y%20=%200"></td>
+<td><img src="https://latex.codecogs.com/png.latex?y%20=%201"></td>
+</tr>
+<tr class="even">
+<td><img src="https://latex.codecogs.com/png.latex?x_i%20=%200"></td>
+<td><img src="https://latex.codecogs.com/png.latex?%5Ctheta%5E0_%7B0%7D"></td>
+<td><img src="https://latex.codecogs.com/png.latex?%5Ctheta%5E1_%7B0%7D"></td>
+</tr>
+<tr class="odd">
+<td><img src="https://latex.codecogs.com/png.latex?x_i%20=%201"></td>
+<td><img src="https://latex.codecogs.com/png.latex?%5Ctheta%5E0_%7B1%7D"></td>
+<td><img src="https://latex.codecogs.com/png.latex?%5Ctheta%5E1_%7B1%7D"></td>
+</tr>
+</tbody>
+</table>
+<p>and the conditional probability constraints bring the number of parameters per input variable from four to two. Thus, overall we have <img src="https://latex.codecogs.com/png.latex?2%20n"> parameters to estimate. This is now less than the <img src="https://latex.codecogs.com/png.latex?2%5En"> of the discriminative model (provided <img src="https://latex.codecogs.com/png.latex?n%20%3E%202">).</p>
+<p>On top of the number of parameters that need to be estimated, in order to reliably estimate them, we need to observe each distinct instance multiple times. This is discussed in <span class="citation" data-cites="mitchell2020generative">(Mitchell 2020)</span>.</p>
+<div class="page-columns page-full"><p>We thus can, and often do, introduce futher bias in generative models in order to make them tractable. A consequence of this is that generative models can be less accurate, if they (i.e.&nbsp;the small world model) don’t reflect the large world model<sup>3</sup>, but (when they do) generative models require less data to train.</p><div class="no-row-height column-margin column-container"><li id="fn3"><p><sup>3</sup>&nbsp;This is Savage’s <a href="https://errorstatistics.files.wordpress.com/2021/03/savage-forum-combined-searchable_red.pdf">terminology</a>, as presented by McElreath in Statistical Rethinking: <em>“All statisitcal modelling has these two frames: the small world of the model itself and the large world we hope to deploy the model in.”</em> <span class="citation" data-cites="mcelreath2020statistical">(McElreath 2020, 19)</span>.</p></li></div></div>
+</section>
+<section id="generative-models-can-deal-with-missing-data" class="level2">
+<h2 class="anchored" data-anchor-id="generative-models-can-deal-with-missing-data">Generative models can deal with missing data</h2>
+<p>Let’s turn to the often mentioned fact that generative models can deal with missing data. What this means is that they can still make predictions if given a vector of inputs <img src="https://latex.codecogs.com/png.latex?%5Chat%20x%20=%20%5Cleft(%20%5Chat%20x_1,%20%5Ccdots,%20%5Chat%20x_k,%20%5Cbar%20x_%7Bk+1%7D,%20%5Ccdots,%20%5Cbar%20x_n%20%5Cright)%20=%20%5Cleft(%20%5Chat%20x_o,%20%5Cbar%20x_m%20%5Cright)">, where <img src="https://latex.codecogs.com/png.latex?%5Cbar%20x_m"> are missing, whereas discriminative models can’t.</p>
+<p>When it comes to predicting <img src="https://latex.codecogs.com/png.latex?%5Chat%20y"> given <img src="https://latex.codecogs.com/png.latex?%5Chat%20x"> (and <img src="https://latex.codecogs.com/png.latex?D">), we need the posterior predictive distribution, namely</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0A%5Cbegin%7Balign*%7D%0AP%20%5Cleft(%20%5Chat%20y%20%5Cvert%20%5Chat%20x,%20D%20%5Cright)%20&amp;=%20%5Cint_%5CTheta%20P%20%5Cleft(%20%5Chat%20y,%20%5Ctheta%20%5Cvert%20%5Chat%20x,%20D%20%5Cright)%20%5Cmathrm%7Bd%7D%20%5Ctheta%20%5C%5C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20&amp;=%20%5Cint_%5CTheta%20P%20%5Cleft(%20%5Chat%20y%20%5Cvert%20%5Chat%20x,%20%5Ctheta%20%5Cright)%20P%20%5Cleft(%20%5Ctheta%20%5Cvert%20D%20%5Cright)%20%5Cmathrm%7Bd%7D%20%5Ctheta,%0A%5Cend%7Balign*%7D%0A"></p>
+<p>where we assume that the past and future observations are conditionally independent given <img src="https://latex.codecogs.com/png.latex?%5Ctheta">.</p>
+<p>In the case of missing inputs, we want to consider</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0A%5Cbegin%7Balign*%7D%0AP%20%5Cleft(%20%5Chat%20y%20%5Cvert%20%5Chat%20x_o,%20%5Ctheta%20%5Cright)%20%20&amp;=%20%5Csum_%7B%5Cbar%20x_m%7D%20P%20%5Cleft(%20%5Chat%20y,%20%5Cbar%20x_m%20%5Cvert%20%5Chat%20x_o,%20%5Ctheta%20%5Cright)%20%5C%5C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20&amp;=%20%5Csum_%7B%5Cbar%20x_m%7D%20P%20%5Cleft(%20%5Chat%20y%20%5Cvert%20%5Chat%20x_o,%20%5Cbar%20x_m%20,%20%5Ctheta%20%5Cright)%20P%20%5Cleft(%20%5Cbar%20x_m%20%5Cvert%20%5Chat%20x_o,%20%5Ctheta%20%5Cright)%0A%5Cend%7Balign*%7D%0A"></p>
+<p>and plug this into the posterior predictive distribution.</p>
+<div class="cell" data-execution_count="13">
+<div class="cell-output cell-output-display" data-execution_count="12">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://bs-ds.github.io/blog/posts/discriminative-vs-generative/index_files/figure-html/cell-14-output-1.svg" class="img-fluid figure-img"></p>
+<p></p><p></p>
+</figure>
+</div>
+</div>
+</div>
+<p>In the case of discriminative models, we have no way of evaluating the necessary probabilities because we only have <img src="https://latex.codecogs.com/png.latex?P_%7B21%7D%20%5Cleft(%20y%20%5Cvert%20x,%20%5Ctheta%20%5Cright)">. We therefore cannot obtain <img src="https://latex.codecogs.com/png.latex?P%20%5Cleft(%20%5Cbar%20x_m%20%5Cvert%20%5Chat%20x_o,%20%5Ctheta%20%5Cright)">. We would need to instead resort to some form of imputation. This equates to making assumptions about the distribution <img src="https://latex.codecogs.com/png.latex?P%20%5Cleft(%20x%20%5Cright)">, which we would instead have if we consider an extended discriminative model. These can indeed deal with missing observations, given they model the full joint distribution, explicitly via <img src="https://latex.codecogs.com/png.latex?P%20%5Cleft(%20y%20%5Cvert%20x%20%5Cright)"> and <img src="https://latex.codecogs.com/png.latex?P%20%5Cleft(x%20%5Cright)">.</p>
+<div class="cell" data-execution_count="14">
+<div class="cell-output cell-output-display" data-execution_count="13">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://bs-ds.github.io/blog/posts/discriminative-vs-generative/index_files/figure-html/cell-15-output-1.svg" class="img-fluid figure-img"></p>
+<p></p><p></p>
+</figure>
+</div>
+</div>
+</div>
+<p>In the generative case, we instead have the joint distribution <img src="https://latex.codecogs.com/png.latex?P_1%20%5Cleft(%20x,%20y%20%5Cvert%20%5Ctheta%20%5Cright)">. We can therefore use Bayes theorem to get <img src="https://latex.codecogs.com/png.latex?P%20%5Cleft(%20%5Chat%20y%20%5Cvert%20%5Chat%20x_o,%20%5Cbar%20x_m%20,%20%5Ctheta%20%5Cright)">, as we would anyhow for prediction, and then use the joint distribution with the necessary marginalisations to get <img src="https://latex.codecogs.com/png.latex?P%20%5Cleft(%20%5Cbar%20x_m%20%5Cvert%20%5Chat%20x_o,%20%5Ctheta%20%5Cright)">.</p>
+<p>We can also consider more general forms of missing data, including missing labels and missing inputs in the training data. In the case of generative models, we can train them both in an unsupervised way, when we have no labels, and a semi-supervised way, when we have a few labels. In the case of discriminative models, Minka points out that the extended model can also be trained in a semi-supervised fashion <span class="citation" data-cites="minka2005discriminative">(2005)</span>. We will cover this in a future post.</p>
+
+
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-bishop2006pattern" class="csl-entry">
+Bishop, CM. 2006. <em>Pattern Recognition and Machine Learning</em>. Springer.
+</div>
+<div id="ref-devries2021bmlip" class="csl-entry">
+de Vries, B, W Kouw, and MT Koudahl. 2021. <span>“Bayesian Machine Learning and Information Processing.”</span> Eindhoven University of Technology. <a href="https://biaslab.github.io/teaching/bmlip/">https://biaslab.github.io/teaching/bmlip/</a>.
+</div>
+<div id="ref-lasserre2006principled" class="csl-entry">
+Lasserre, JA, CM Bishop, and TP Minka. 2006. <span>“Principled Hybrids of Generative and Discriminative Models.”</span> In <em>2006 IEEE Computer Society Conference on Computer Vision and Pattern Recognition (CVPR’06)</em>, 1:87–94. IEEE.
+</div>
+<div id="ref-loeliger2004introduction" class="csl-entry">
+Loeliger, H-A. 2004. <span>“An Introduction to Factor Graphs.”</span> <em>IEEE Signal Processing Magazine</em> 21 (1): 28–41.
+</div>
+<div id="ref-mcelreath2020statistical" class="csl-entry">
+McElreath, R. 2020. <em>Statistical Rethinking: A Bayesian Course with Examples in <span>R</span> and Stan</em>. Chapman; Hall/CRC.
+</div>
+<div id="ref-minka2005discriminative" class="csl-entry">
+Minka, T. 2005. <span>“Discriminative Models, Not Discriminative Training.”</span> Technical Report MSR-TR-2005-144, Microsoft Research. <a href="https://www.microsoft.com/en-us/research/publication/discriminative-models-not-discriminative-training/">https://www.microsoft.com/en-us/research/publication/discriminative-models-not-discriminative-training/</a>.
+</div>
+<div id="ref-mitchell2020generative" class="csl-entry">
+Mitchell, TM. 2020. <span>“Generative and Discriminative Classifiers: Naive Bayes and Logistic Regression.”</span> Draft chapter for Volume 2 of Machine Learning textbook. <a href="http://www.cs.cmu.edu/~tom/mlbook/NBayesLogReg.pdf">http://www.cs.cmu.edu/~tom/mlbook/NBayesLogReg.pdf</a>.
+</div>
+</div></section><section class="quarto-appendix-contents"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div quarto-reuse="quarto-reuse" class="quarto-appendix-contents"><a rel="license" href="https://creativecommons.org/licenses/by/4.0/">https://creativecommons.org/licenses/by/4.0/</a></div></section></div> ]]></description>
+  <category>ML</category>
+  <category>theory</category>
+  <category>factor graphs</category>
+  <category>PGMs</category>
+  <guid>https://bs-ds.github.io/blog/posts/discriminative-vs-generative/index.html</guid>
+  <pubDate>Mon, 13 Jun 2022 00:00:00 GMT</pubDate>
+  <media:content url="https://bs-ds.github.io/blog/posts/discriminative-vs-generative/graph.png" medium="image" type="image/png" height="42" width="144"/>
+</item>
 <item>
   <title>Heatmaps done right</title>
-  <link>https://bs-ds.github.io/blog//posts/heatmaps-clustering/index.html</link>
+  <link>https://bs-ds.github.io/blog/posts/heatmaps-clustering/index.html</link>
   <description><![CDATA[ 
+
 
 
 <p>Given a distance matrix, i.e.&nbsp;a symmetric matrix of distances between observations, if the indices of the observations are arbitrary, or more generally there is no variable by which we want to order the observations, then plotting it as a heatmap using the default ordering (of the indices) is often not very useful. If we do so, we get a heatmap where the rows and columns are ordered abritrarily and the plot itself may be hard to interpret. In many cases, a better approach is to cluster the observations and use the new ordering This will lead to a heatmap in which similar observations are grouped. This is what <code>sns.clustermap</code> offers, as seen in the <a href="https://seaborn.pydata.org/generated/seaborn.clustermap.html">docs</a>.</p>
@@ -25,19 +316,19 @@
 <section id="set-up" class="level2">
 <h2 class="anchored" data-anchor-id="set-up">Set up</h2>
 <div class="cell" data-execution_count="1">
-<div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python cell-code code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="op" style="color: #5E5E5E;">!</span>pip install <span class="op" style="color: #5E5E5E;">-</span>r requirements.txt</span></code></pre></div>
+<div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="op" style="color: #5E5E5E;">!</span>pip install <span class="op" style="color: #5E5E5E;">-</span>r requirements.txt</span></code></pre></div>
 </div>
 </section>
 <section id="imports" class="level2">
 <h2 class="anchored" data-anchor-id="imports">Imports</h2>
 <div class="cell" data-execution_count="2">
-<div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode python cell-code code-with-copy"><code class="sourceCode python"><span id="cb2-1"><span class="im" style="color: null;">import</span> altair <span class="im" style="color: null;">as</span> alt</span>
-<span id="cb2-2"><span class="im" style="color: null;">import</span> nltk</span>
-<span id="cb2-3"><span class="im" style="color: null;">from</span> nltk.corpus <span class="im" style="color: null;">import</span> inaugural</span>
-<span id="cb2-4"><span class="im" style="color: null;">import</span> pandas <span class="im" style="color: null;">as</span> pd</span>
+<div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><span class="im" style="color: #00769E;">import</span> altair <span class="im" style="color: #00769E;">as</span> alt</span>
+<span id="cb2-2"><span class="im" style="color: #00769E;">import</span> nltk</span>
+<span id="cb2-3"><span class="im" style="color: #00769E;">from</span> nltk.corpus <span class="im" style="color: #00769E;">import</span> inaugural</span>
+<span id="cb2-4"><span class="im" style="color: #00769E;">import</span> pandas <span class="im" style="color: #00769E;">as</span> pd</span>
 <span id="cb2-5"></span>
 <span id="cb2-6"><span class="co" style="color: #5E5E5E;"># from scipy.spatial.distance import pdist</span></span>
-<span id="cb2-7"><span class="im" style="color: null;">from</span> scipy.cluster <span class="im" style="color: null;">import</span> hierarchy</span></code></pre></div>
+<span id="cb2-7"><span class="im" style="color: #00769E;">from</span> scipy.cluster <span class="im" style="color: #00769E;">import</span> hierarchy</span></code></pre></div>
 </div>
 </section>
 <section id="data" class="level2 page-columns page-full">
@@ -45,10 +336,10 @@
 <div class="page-columns page-full"><p>Let us quickly get the presidential addresses from nltk, and then compute the Jaccard distance on the 5-shingles<sup>1</sup>.</p><div class="no-row-height column-margin column-container"><li id="fn1"><p><sup>1</sup>&nbsp;<em>Shingles</em> are substrings of a certain length that are created by passing a moving window along the text. This choice of representation of the texts is common when working with web data, and can deal with mispellings and the sequential nature of text (to some extent). See e.g. <span class="citation" data-cites="schutze2008introduction">(Schütze, Manning, and Raghavan 2008, sec. 19.6)</span>.</p></li></div></div>
 <p>First we download and import the data.</p>
 <div class="cell" data-execution_count="3">
-<div class="sourceCode" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python cell-code code-with-copy"><code class="sourceCode python"><span id="cb3-1">nltk.download(<span class="st" style="color: #20794D;">"inaugural"</span>)</span></code></pre></div>
+<div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1">nltk.download(<span class="st" style="color: #20794D;">"inaugural"</span>)</span></code></pre></div>
 </div>
 <div class="cell" data-execution_count="4">
-<div class="sourceCode" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode python cell-code code-with-copy"><code class="sourceCode python"><span id="cb4-1">ids <span class="op" style="color: #5E5E5E;">=</span> inaugural.fileids()</span>
+<div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1">ids <span class="op" style="color: #5E5E5E;">=</span> inaugural.fileids()</span>
 <span id="cb4-2">data <span class="op" style="color: #5E5E5E;">=</span> [</span>
 <span id="cb4-3">    {</span>
 <span id="cb4-4">        <span class="st" style="color: #20794D;">"id"</span>: i,</span>
@@ -56,41 +347,42 @@
 <span id="cb4-6">        <span class="st" style="color: #20794D;">"president"</span>: (<span class="bu" style="color: null;">id</span>.split(<span class="st" style="color: #20794D;">"-"</span>)[<span class="dv" style="color: #AD0000;">1</span>]).split(<span class="st" style="color: #20794D;">"."</span>)[<span class="dv" style="color: #AD0000;">0</span>],</span>
 <span id="cb4-7">        <span class="st" style="color: #20794D;">"text"</span>: inaugural.raw(fileids<span class="op" style="color: #5E5E5E;">=</span><span class="bu" style="color: null;">id</span>).lower(),</span>
 <span id="cb4-8">    }</span>
-<span id="cb4-9">    <span class="cf" style="color: #00769E;">for</span> i, <span class="bu" style="color: null;">id</span> <span class="kw" style="color: #00769E;">in</span> <span class="bu" style="color: null;">enumerate</span>(ids)</span>
+<span id="cb4-9">    <span class="cf" style="color: #003B4F;">for</span> i, <span class="bu" style="color: null;">id</span> <span class="kw" style="color: #003B4F;">in</span> <span class="bu" style="color: null;">enumerate</span>(ids)</span>
 <span id="cb4-10">]</span>
 <span id="cb4-11">df <span class="op" style="color: #5E5E5E;">=</span> pd.DataFrame(data)</span></code></pre></div>
 </div>
 <p>Then we shingle the text.</p>
 <div class="cell" data-execution_count="5">
-<div class="sourceCode" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode python cell-code code-with-copy"><code class="sourceCode python"><span id="cb5-1"><span class="kw" style="color: #00769E;">def</span> get_shingles(x, size<span class="op" style="color: #5E5E5E;">=</span><span class="dv" style="color: #AD0000;">5</span>):</span>
+<div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><span class="kw" style="color: #003B4F;">def</span> get_shingles(x, size<span class="op" style="color: #5E5E5E;">=</span><span class="dv" style="color: #AD0000;">5</span>):</span>
 <span id="cb5-2">    x <span class="op" style="color: #5E5E5E;">=</span> x <span class="op" style="color: #5E5E5E;">+</span> (size <span class="op" style="color: #5E5E5E;">*</span> <span class="st" style="color: #20794D;">" "</span>)</span>
-<span id="cb5-3">    shingles <span class="op" style="color: #5E5E5E;">=</span> [x[i : i <span class="op" style="color: #5E5E5E;">+</span> size] <span class="cf" style="color: #00769E;">for</span> i <span class="kw" style="color: #00769E;">in</span> <span class="bu" style="color: null;">range</span>(<span class="dv" style="color: #AD0000;">0</span>, <span class="bu" style="color: null;">len</span>(x) <span class="op" style="color: #5E5E5E;">-</span> size)]</span>
-<span id="cb5-4">    <span class="cf" style="color: #00769E;">return</span> shingles</span></code></pre></div>
+<span id="cb5-3">    shingles <span class="op" style="color: #5E5E5E;">=</span> [x[i : i <span class="op" style="color: #5E5E5E;">+</span> size] <span class="cf" style="color: #003B4F;">for</span> i <span class="kw" style="color: #003B4F;">in</span> <span class="bu" style="color: null;">range</span>(<span class="dv" style="color: #AD0000;">0</span>, <span class="bu" style="color: null;">len</span>(x) <span class="op" style="color: #5E5E5E;">-</span> size)]</span>
+<span id="cb5-4">    <span class="cf" style="color: #003B4F;">return</span> shingles</span></code></pre></div>
 </div>
 <div class="cell" data-execution_count="6">
-<div class="sourceCode" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode python cell-code code-with-copy"><code class="sourceCode python"><span id="cb6-1">df[<span class="st" style="color: #20794D;">"shingles"</span>] <span class="op" style="color: #5E5E5E;">=</span> df[<span class="st" style="color: #20794D;">"text"</span>].<span class="bu" style="color: null;">apply</span>(get_shingles)</span></code></pre></div>
+<div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1">df[<span class="st" style="color: #20794D;">"shingles"</span>] <span class="op" style="color: #5E5E5E;">=</span> df[<span class="st" style="color: #20794D;">"text"</span>].<span class="bu" style="color: null;">apply</span>(get_shingles)</span></code></pre></div>
 </div>
 <p>And finally we can compute the Jaccard similarity.</p>
 <div class="cell" data-execution_count="7">
-<div class="sourceCode" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode python cell-code code-with-copy"><code class="sourceCode python"><span id="cb7-1"><span class="kw" style="color: #00769E;">def</span> get_similarity(x, y, precision<span class="op" style="color: #5E5E5E;">=</span><span class="dv" style="color: #AD0000;">3</span>):</span>
+<div class="sourceCode cell-code" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><span class="kw" style="color: #003B4F;">def</span> get_similarity(x, y, precision<span class="op" style="color: #5E5E5E;">=</span><span class="dv" style="color: #AD0000;">3</span>):</span>
 <span id="cb7-2">    a <span class="op" style="color: #5E5E5E;">=</span> <span class="bu" style="color: null;">set</span>(x)</span>
 <span id="cb7-3">    b <span class="op" style="color: #5E5E5E;">=</span> <span class="bu" style="color: null;">set</span>(y)</span>
-<span id="cb7-4">    <span class="cf" style="color: #00769E;">return</span> <span class="bu" style="color: null;">round</span>(<span class="bu" style="color: null;">len</span>(a.intersection(b)) <span class="op" style="color: #5E5E5E;">/</span> <span class="bu" style="color: null;">len</span>(a.union(b)), precision)</span></code></pre></div>
+<span id="cb7-4">    <span class="cf" style="color: #003B4F;">return</span> <span class="bu" style="color: null;">round</span>(<span class="bu" style="color: null;">len</span>(a.intersection(b)) <span class="op" style="color: #5E5E5E;">/</span> <span class="bu" style="color: null;">len</span>(a.union(b)), precision)</span></code></pre></div>
 </div>
 <div class="cell" data-execution_count="8">
-<div class="sourceCode" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode python cell-code code-with-copy"><code class="sourceCode python"><span id="cb8-1">df_pairs <span class="op" style="color: #5E5E5E;">=</span> df.copy()</span>
+<div class="sourceCode cell-code" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1">df_pairs <span class="op" style="color: #5E5E5E;">=</span> df.copy()</span>
 <span id="cb8-2">df_pairs[<span class="st" style="color: #20794D;">"key"</span>] <span class="op" style="color: #5E5E5E;">=</span> <span class="dv" style="color: #AD0000;">0</span></span>
 <span id="cb8-3">df_pairs <span class="op" style="color: #5E5E5E;">=</span> df_pairs.merge(df_pairs, on<span class="op" style="color: #5E5E5E;">=</span><span class="st" style="color: #20794D;">"key"</span>).drop(columns<span class="op" style="color: #5E5E5E;">=</span>[<span class="st" style="color: #20794D;">"key"</span>])</span>
 <span id="cb8-4"></span>
 <span id="cb8-5">df_pairs[<span class="st" style="color: #20794D;">"similarity"</span>] <span class="op" style="color: #5E5E5E;">=</span> df_pairs.<span class="bu" style="color: null;">apply</span>(</span>
-<span id="cb8-6">    <span class="kw" style="color: #00769E;">lambda</span> row: get_similarity(row[<span class="st" style="color: #20794D;">"shingles_x"</span>], row[<span class="st" style="color: #20794D;">"shingles_y"</span>]), axis<span class="op" style="color: #5E5E5E;">=</span><span class="dv" style="color: #AD0000;">1</span></span>
+<span id="cb8-6">    <span class="kw" style="color: #003B4F;">lambda</span> row: get_similarity(row[<span class="st" style="color: #20794D;">"shingles_x"</span>], row[<span class="st" style="color: #20794D;">"shingles_y"</span>]), axis<span class="op" style="color: #5E5E5E;">=</span><span class="dv" style="color: #AD0000;">1</span></span>
 <span id="cb8-7">)</span>
 <span id="cb8-8"></span>
 <span id="cb8-9">df_pairs.drop(columns<span class="op" style="color: #5E5E5E;">=</span>[<span class="st" style="color: #20794D;">"text_x"</span>, <span class="st" style="color: #20794D;">"text_y"</span>, <span class="st" style="color: #20794D;">"shingles_x"</span>, <span class="st" style="color: #20794D;">"shingles_y"</span>], inplace<span class="op" style="color: #5E5E5E;">=</span><span class="va" style="color: #111111;">True</span>)</span></code></pre></div>
 </div>
 <div class="cell" data-execution_count="9">
-<div class="sourceCode" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode python cell-code code-with-copy"><code class="sourceCode python"><span id="cb9-1">df_pairs.head()</span></code></pre></div>
+<div class="sourceCode cell-code" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1">df_pairs.head()</span></code></pre></div>
 <div class="cell-output-display" data-execution_count="7">
+
 <div>
 
 <table class="dataframe table table-sm table-striped">
@@ -167,7 +459,7 @@
 <h2 class="anchored" data-anchor-id="clustering">Clustering</h2>
 <p>Clustering is straightforward. We are after the “optimal” ordering, i.e.&nbsp;the re-ordering with similar values placed close to each other.</p>
 <div class="cell" data-execution_count="10">
-<div class="sourceCode" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode python cell-code code-with-copy"><code class="sourceCode python"><span id="cb10-1">mat_pairs <span class="op" style="color: #5E5E5E;">=</span> df_pairs.pivot(index<span class="op" style="color: #5E5E5E;">=</span><span class="st" style="color: #20794D;">"id_x"</span>, columns<span class="op" style="color: #5E5E5E;">=</span><span class="st" style="color: #20794D;">"id_y"</span>, values<span class="op" style="color: #5E5E5E;">=</span><span class="st" style="color: #20794D;">"similarity"</span>).to_numpy()</span>
+<div class="sourceCode cell-code" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1">mat_pairs <span class="op" style="color: #5E5E5E;">=</span> df_pairs.pivot(index<span class="op" style="color: #5E5E5E;">=</span><span class="st" style="color: #20794D;">"id_x"</span>, columns<span class="op" style="color: #5E5E5E;">=</span><span class="st" style="color: #20794D;">"id_y"</span>, values<span class="op" style="color: #5E5E5E;">=</span><span class="st" style="color: #20794D;">"similarity"</span>).to_numpy()</span>
 <span id="cb10-2"></span>
 <span id="cb10-3">Z <span class="op" style="color: #5E5E5E;">=</span> hierarchy.linkage(mat_pairs, optimal_ordering<span class="op" style="color: #5E5E5E;">=</span><span class="va" style="color: #111111;">True</span>)</span>
 <span id="cb10-4"></span>
@@ -180,10 +472,10 @@
 <h3 class="anchored" data-anchor-id="by-date">By date</h3>
 <p>Note that our indices are actually ordered by date. This might be an interesting dimension and plotting the distances by date might reveal some insight from the data.</p>
 <div class="cell" data-execution_count="11">
-<div class="sourceCode" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode python cell-code code-with-copy"><code class="sourceCode python"><span id="cb11-1">w <span class="op" style="color: #5E5E5E;">=</span> <span class="dv" style="color: #AD0000;">500</span></span></code></pre></div>
+<div class="sourceCode cell-code" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1">w <span class="op" style="color: #5E5E5E;">=</span> <span class="dv" style="color: #AD0000;">500</span></span></code></pre></div>
 </div>
 <div class="cell" data-execution_count="12">
-<div class="sourceCode" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode python cell-code code-with-copy"><code class="sourceCode python"><span id="cb12-1">(</span>
+<div class="sourceCode cell-code" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1">(</span>
 <span id="cb12-2">    alt.Chart(df_pairs)</span>
 <span id="cb12-3">    .mark_rect()</span>
 <span id="cb12-4">    .encode(</span>
@@ -262,7 +554,7 @@
 <section id="by-distance" class="level3">
 <h3 class="anchored" data-anchor-id="by-distance">By distance</h3>
 <div class="cell" data-execution_count="13">
-<div class="sourceCode" id="cb13" style="background: #f1f3f5;"><pre class="sourceCode python cell-code code-with-copy"><code class="sourceCode python"><span id="cb13-1">(</span>
+<div class="sourceCode cell-code" id="cb13" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1">(</span>
 <span id="cb13-2">    alt.Chart(df_pairs)</span>
 <span id="cb13-3">    .mark_rect()</span>
 <span id="cb13-4">    .encode(</span>
@@ -339,9 +631,9 @@
 
 
 
+</section>
+</section>
 
-</section>
-</section>
 
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent">
 <div id="ref-schutze2008introduction" class="csl-entry">
@@ -350,14 +642,15 @@ Schütze, H, CD Manning, and P Raghavan. 2008. <em>Introduction to Information R
 </div></section><section class="quarto-appendix-contents"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div quarto-reuse="quarto-reuse" class="quarto-appendix-contents"><a rel="license" href="https://creativecommons.org/licenses/by/4.0/">https://creativecommons.org/licenses/by/4.0/</a></div></section></div> ]]></description>
   <category>visualisation</category>
   <category>how-to</category>
-  <guid>https://bs-ds.github.io/blog//posts/heatmaps-clustering/index.html</guid>
+  <guid>https://bs-ds.github.io/blog/posts/heatmaps-clustering/index.html</guid>
   <pubDate>Sat, 19 Mar 2022 00:00:00 GMT</pubDate>
-  <media:content url="https://bs-ds.github.io/blog///posts/heatmaps-clustering/visualization.png" medium="image" type="image/png" height="127" width="144"/>
+  <media:content url="https://bs-ds.github.io/blog/posts/heatmaps-clustering/visualization.png" medium="image" type="image/png" height="127" width="144"/>
 </item>
 <item>
   <title>Setting up a blog using quarto</title>
-  <link>https://bs-ds.github.io/blog//posts/how-to/index.html</link>
+  <link>https://bs-ds.github.io/blog/posts/how-to/index.html</link>
   <description><![CDATA[ 
+
 
 
 <p><em>This is a minimal, living document to remind ourselves how we set up the blog, and how to write on it. We will update it as needed. It may turn out to be useful more generally, but the best place to look is the <a href="https://quarto.org/">quarto</a> site.</em></p>
@@ -385,13 +678,13 @@ Schütze, H, CD Manning, and P Raghavan. 2008. <em>Introduction to Information R
 <p>NOTE: Any rendered content, in the docs/ folder, should not be pushed to the repository, but we cannot (simply) add it to the .gitignore, as this would break the CI which pushes the contents of docs/ to the pages branch.</p>
 
 
-
 </section>
+
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div quarto-reuse="quarto-reuse" class="quarto-appendix-contents"><a rel="license" href="https://creativecommons.org/licenses/by/4.0/">https://creativecommons.org/licenses/by/4.0/</a></div></section></div> ]]></description>
   <category>how-to</category>
-  <guid>https://bs-ds.github.io/blog//posts/how-to/index.html</guid>
+  <guid>https://bs-ds.github.io/blog/posts/how-to/index.html</guid>
   <pubDate>Sun, 06 Mar 2022 00:00:00 GMT</pubDate>
-  <media:content url="https://bs-ds.github.io/blog///posts/how-to/quarto.png" medium="image" type="image/png" height="35" width="144"/>
+  <media:content url="https://bs-ds.github.io/blog/posts/how-to/quarto.png" medium="image" type="image/png" height="35" width="144"/>
 </item>
 </channel>
 </rss>

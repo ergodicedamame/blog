@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-0.9.577">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="dcterms.date" content="2022-06-13">
+
+<title>BS DS - Generative vs.&nbsp;discriminative models</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">BS DS</span>
+  </a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html">About</a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../index.xml"><i class="bi bi-rss" role="img">
+</i> 
+ </a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/bs-ds/blog/"><i class="bi bi-github" role="img">
+</i> 
+ </a>
+  </li>  
+</ul>
+              <div id="quarto-search" class="" title="Search"></div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#generative-models-can-be-used-to-generate-synthetic-data" id="toc-generative-models-can-be-used-to-generate-synthetic-data" class="nav-link active" data-scroll-target="#generative-models-can-be-used-to-generate-synthetic-data">Generative models can be used to generate synthetic data</a></li>
+  <li><a href="#generative-models-consider-a-more-restictive-parameter-space" id="toc-generative-models-consider-a-more-restictive-parameter-space" class="nav-link" data-scroll-target="#generative-models-consider-a-more-restictive-parameter-space">Generative models consider a more restictive parameter space</a></li>
+  <li><a href="#generative-models-require-more-assumptions" id="toc-generative-models-require-more-assumptions" class="nav-link" data-scroll-target="#generative-models-require-more-assumptions">Generative models require more assumptions</a></li>
+  <li><a href="#generative-models-can-deal-with-missing-data" id="toc-generative-models-can-deal-with-missing-data" class="nav-link" data-scroll-target="#generative-models-can-deal-with-missing-data">Generative models can deal with missing data</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content page-columns page-full" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Generative vs.&nbsp;discriminative models</h1>
+<p class="subtitle lead">Thinking through the differences between generative and discriminative models.</p>
+  <div class="quarto-categories">
+    <div class="quarto-category">ML</div>
+    <div class="quarto-category">theory</div>
+    <div class="quarto-category">factor graphs</div>
+    <div class="quarto-category">PGMs</div>
+  </div>
+  </div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">June 13, 2022</p>
+    </div>
+  </div>
+    
+  </div>
+  
+
+</header>
+
+<p>Generative and discriminative models are known to have complementary strenghts. Following <span class="citation" data-cites="minka2005discriminative">Minka (<a href="#ref-minka2005discriminative" role="doc-biblioref">2005</a>)</span> and <span class="citation" data-cites="lasserre2006principled">Lasserre, Bishop, and Minka (<a href="#ref-lasserre2006principled" role="doc-biblioref">2006</a>)</span>, we will show how they can be seen to be at different ends of a spectrum, and then discuss some of their differences in detail.</p>
+<div class="page-columns page-full"><p>We will work through the definitions and differences by considering <em>probabilistic (graphical) models</em>, specifically using the <em>factor graph</em> representation<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>. Throughout, we will focus on <em>classification</em>, where we are given a labelled data set <span class="math inline">\(D = \lbrace \left( x^i, y^i \right) \rbrace_N\)</span> with inputs <span class="math inline">\(x^i = \left( x^i_1, \cdots, x^i_n \right)\)</span> and labels <span class="math inline">\(y^i \in \lbrace 0, 1 \rbrace\)</span>, and we want <span class="math inline">\(P \left( y = 1 \vert x = \hat x, D \right)\)</span> for some (new) <span class="math inline">\(\hat x\)</span><a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a>. The definitions and the generative-discriminative dichotomy are however more general, i.e.&nbsp;they are not restricted to the problem of classification.</p><div class="no-row-height column-margin column-container"><li id="fn1" role="doc-endnote"><p><sup>1</sup>&nbsp;Factor graphs are a more detailed representation of a probabilistic graphical model that specifies the factorization of the joint probability being modelled. See e.g. <span class="citation" data-cites="loeliger2004introduction">Loeliger (<a href="#ref-loeliger2004introduction" role="doc-biblioref">2004</a>)</span>.</p></li><li id="fn2" role="doc-endnote"><p><sup>2</sup>&nbsp;Note that actually determining which class to assign to <span class="math inline">\(\hat x\)</span> requires a final decision. We will ignore this as well as <em>discriminant functions</em>, which combine the inference and the decision steps. See <span class="citation" data-cites="bishop2006pattern">(<a href="#ref-bishop2006pattern" role="doc-biblioref">Bishop 2006, sec. 1.5.4</a>)</span> for a discussion.</p></li></div></div>
+<section id="generative-models-can-be-used-to-generate-synthetic-data" class="level2">
+<h2 class="anchored" data-anchor-id="generative-models-can-be-used-to-generate-synthetic-data">Generative models can be used to generate synthetic data</h2>
+<p>A <em>discriminative model</em> is one that provides <span class="math inline">\(P \left( y \vert x \right)\)</span> directly. The name comes from the fact that we can view the distribution (together with the decision to choose the most probable value) as directly discriminating the value of the target <span class="math inline">\(y\)</span> for any given instance <span class="math inline">\(x\)</span>.</p>
+<div class="cell" data-execution_count="4">
+<div class="cell-output cell-output-display" data-execution_count="3">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="index_files/figure-html/cell-5-output-1.svg" class="img-fluid figure-img"></p>
+<p></p><figcaption aria-hidden="true" class="figure-caption">Discriminative model, as used for prediction.</figcaption><p></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Mirorring the definition of a discriminative model, a <em>generative model</em> is instead often defined as one that provides the joint probability <span class="math inline">\(P \left( x, y \right)\)</span> in the form <span class="math inline">\(P \left( x \vert y \right)P \left( y \right)\)</span>, on which one can then use Bayes’ theorem to obtain <span class="math inline">\(P \left( y \vert x \right) \propto P \left( x \vert y \right)P \left( y \right).\)</span> The graph representation for such a model is shown below.</p>
+<div class="cell" data-execution_count="5">
+<div class="cell-output cell-output-display" data-execution_count="4">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="index_files/figure-html/cell-6-output-1.svg" class="img-fluid figure-img"></p>
+<p></p><figcaption aria-hidden="true" class="figure-caption">Generative model with “default” factorization, as used for prediction.</figcaption><p></p>
+</figure>
+</div>
+</div>
+</div>
+<p>A good reference on classification, which introduces and compares these approaches, is <span class="citation" data-cites="bishop2006pattern">Bishop (<a href="#ref-bishop2006pattern" role="doc-biblioref">2006, chap. 4</a>)</span>.</p>
+<p>The more general definition is that a generative model is one that can generate data via <em>ancestral sampling</em>, i.e.&nbsp;sampling from the priors and passing the sampled values through the graphical model. This includes the definition above, which also has a choice of factorisation. We can also turn our discriminative model into a generative one by adding a factor for <span class="math inline">\(P \left( x \right)\)</span>, such that it too models the joint distribution <span class="math inline">\(P \left( x, y \right)\)</span>. Put differently, the factorization used in the definition of the generative model above is not what makes it a generative model. It is rather the fact that it models the joint distribution. In order to distinguish between the (first) generative model and the extended discriminative model, which is also a generative model, Mitchell refers to the former as a <em>Bayes classifier</em> given that it uses Bayes theorem to recover <span class="math inline">\(P \left( y \vert x \right)\)</span> <span class="citation" data-cites="mitchell2020generative">(<a href="#ref-mitchell2020generative" role="doc-biblioref">Mitchell 2020</a>)</span>.</p>
+<div class="cell" data-execution_count="6">
+<div class="cell-output cell-output-display" data-execution_count="5">
+<div id="fg-discr-extended" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="index_files/figure-html/fg-discr-extended-output-1.svg" class="img-fluid figure-img"></p>
+<p></p><figcaption aria-hidden="true" class="figure-caption">Extended discriminative model with prior for <span class="math inline">\(x\)</span>, as used for prediction.</figcaption><p></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Note that we sometimes also find people stating that generative models are ones that capture the causal process by which the actual data (<span class="math inline">\(D\)</span>) is generated. While it is true that one might build a generative model by thinking about the causal process, it could be that the causal <em>data generation process</em> requires <span class="math inline">\(P \left( y \vert x \right)\)</span> rather than <span class="math inline">\(P \left( x \vert y \right)\)</span>. We therefore distinguish between generative models and generative processes.</p>
+</section>
+<section id="generative-models-consider-a-more-restictive-parameter-space" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="generative-models-consider-a-more-restictive-parameter-space">Generative models consider a more restictive parameter space</h2>
+<p>Let’s now look at the fundamental difference between the two model types by considering them in all generality, and focusing on their parametrisation as done by <span class="citation" data-cites="minka2005discriminative">Minka (<a href="#ref-minka2005discriminative" role="doc-biblioref">2005</a>)</span>.</p>
+<p>We write the generative model, with parameters, as</p>
+<p><span class="math display">\[
+P_1 \left( x, y \vert \theta \right) = P_{11} \left( x \vert y, \theta \right) P_{12} \left( y \vert \theta \right).
+\]</span></p>
+<p>We can train the model, i.e.&nbsp;perform inference, to obtain the posterior probability <span class="math inline">\(P \left( \theta \vert D \right)\)</span> by considering the joint distribution</p>
+<p><span class="math display">\[
+\begin{align*}
+P_g \left( D, \theta \right)    &amp;= P_{01} \left( \theta \right) P \left( D \vert \theta \right) \\
+                                &amp;= P_{01} \left( \theta \right) \prod_i P_1 \left( x_i, y_i \vert \theta \right) \\
+                                &amp;= P_{01} \left( \theta \right) \prod_i P_{11} \left( x_i \vert y_i, \theta \right) P_{12} \left( y_i \vert \theta \right),
+\end{align*}
+\]</span></p>
+<p>where we have used the iid assumption on the data.</p>
+<div class="cell" data-execution_count="7">
+<div class="cell-output cell-output-display" data-execution_count="6">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="index_files/figure-html/cell-8-output-1.svg" class="img-fluid figure-img"></p>
+<p></p><figcaption aria-hidden="true" class="figure-caption">Parametrised generative model with training data plate.</figcaption><p></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Alternatively, we can use maximum likelihood estimation to find <span class="math inline">\(\hat \theta\)</span>. The BIASlab couse nicely explains the different approaches with examples <span class="citation" data-cites="devries2021bmlip">(<a href="#ref-devries2021bmlip" role="doc-biblioref">de Vries, Kouw, and Koudahl 2021</a>)</span>.</p>
+<p>Let’s now write the discriminative model, with parameters, as <span class="math inline">\(P_{21} \left( y \vert x, \theta \right)\)</span>. In order to compare it with the generative model, we extend the discriminative model by adding a probability over <span class="math inline">\(x\)</span> and a second parameter in order to obtain the joint distribution</p>
+<p><span class="math display">\[
+P_2 \left( x, y \vert \theta, \phi \right) = P_{21} \left( y \vert x, \theta \right) P_{22} \left( x \vert \phi \right),
+\]</span></p>
+<p>but consider the same joint distribution by setting</p>
+<p><span class="math display">\[
+P_{21} \left( y \vert x, \theta \right) = \frac{P_1 \left( x, y \vert \theta \right)}{\sum_y P_1 \left( x, y \vert \theta \right)}
+\]</span></p>
+<p>and</p>
+<p><span class="math display">\[
+P_{22} \left( x \vert \phi \right) = \sum_y P_1 \left( x, y \vert \phi \right).
+\]</span></p>
+<p>The parameters <span class="math inline">\(\theta\)</span> and <span class="math inline">\(\phi\)</span> are of the same type, but (for now) assumed independent. We can again obtain the posterior distributions for the parameters by considering the joint distribution</p>
+<p><span class="math display">\[
+\begin{align*}
+P_d \left( D, \theta, \phi \right)    &amp;= P_{01} \left( \theta \right) P_{02} \left( \phi \right) P \left( D \vert \theta, \phi \right) \\
+                                &amp;= P_{01} \left( \theta \right) P_{02} \left( \phi \right) \prod_i P_2 \left( x_i, y_i \vert \theta, \phi \right) \\
+                                &amp;= P_{01} \left( \theta \right) P_{02} \left( \phi \right) \prod_i P_{21} \left( y_i \vert x_i, \theta \right) P_{22} \left( x_i \vert \phi \right) \\
+                                &amp;= \left( P_{01} \left( \theta \right) \prod_i P_{21} \left( y_i \vert x_i, \theta \right) \right) \left(P_{02} \left( \phi \right) \prod_i P_{22} \left( x_i \vert \phi \right) \right),
+\end{align*}
+\]</span></p>
+<p>and inferring <span class="math inline">\(P \left( \theta, \phi \vert D \right)\)</span>.</p>
+<div class="cell" data-execution_count="8">
+<div class="cell-output cell-output-display" data-execution_count="7">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="index_files/figure-html/cell-9-output-1.svg" class="img-fluid figure-img"></p>
+<p></p><figcaption aria-hidden="true" class="figure-caption">Parametrised, extended discriminative model with training data plate.</figcaption><p></p>
+</figure>
+</div>
+</div>
+</div>
+<p>We note that, due to the independence assumption, estimation of <span class="math inline">\(\theta\)</span> and <span class="math inline">\(\phi\)</span> decouples, namely if we use the factorization above to define</p>
+<p><span class="math display">\[
+P_d \left( D, \theta, \phi \right) =: P^1 \left( y, \theta \vert x \right) P^2 \left( x, \phi \right),
+\]</span></p>
+<p>then we see that Bayes’ rule simplifies, that is</p>
+<p><span class="math display">\[
+\begin{align*}
+P \left( \theta, \phi \vert D \right)   &amp;= \frac{P_d \left( D, \theta, \phi \right)}{\sum_{\theta, \phi} P_d \left( D, \theta, \phi \right)} \\
+                                        &amp;= \frac{P^1 \left( y, \theta \vert x \right) P^2 \left( x, \phi \right)}{\sum_{\theta , \phi} P^1 \left( y, \theta \vert x \right) P^2 \left( x, \phi \right)} \\
+                                        &amp;= \frac{P^1 \left( y, \theta \vert x \right)}{\sum_\theta P^1 \left( y, \theta \vert x \right) } \frac{P^2 \left( x, \phi \right)}{\sum_\phi P^2 \left( x, \phi \right)} \\
+                                        &amp;=: P \left( \theta \vert D \right) P \left( \phi \vert x \right).
+\end{align*}
+\]</span></p>
+<div class="cell page-columns page-full" data-execution_count="9">
+
+<div class="no-row-height column-margin column-container"><div class="cell-output cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="index_files/figure-html/cell-10-output-1.png" width="211" height="142" class="figure-img"></p>
+<p></p><figcaption aria-hidden="true" class="figure-caption">Comparison of parameter space considered by models. The generative model only considers the hyperplane <span class="math inline">\(\theta = \phi.\)</span></figcaption><p></p>
+</figure>
+</div>
+</div></div></div>
+<p>Thus <span class="math inline">\(\hat \theta\)</span> (or equivalently <span class="math inline">\(P \left( \theta \vert D \right)\)</span>) is unaffected by the estimation of <span class="math inline">\(\hat \phi\)</span> and is the same as what we would have obtained by performing inference on the original, non-extended discriminative model.</p>
+<p>We see that the fundamental difference between the two models is down to the discriminative one considering a larger parameter space without the constraint <span class="math inline">\(\theta = \phi\)</span>. This reduces the (statistical) bias, but introduces variance.</p>
+<p>Interestingly, there is no need to assume independence of <span class="math inline">\(\theta\)</span> and <span class="math inline">\(\phi\)</span>. Considering a joint <span class="math inline">\(P \left( \theta, \phi \right)\)</span> allows us to work with “hybrid” models.</p>
+</section>
+<section id="generative-models-require-more-assumptions" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="generative-models-require-more-assumptions">Generative models require more assumptions</h2>
+<p>We have just shown that the generative model can be seen as considering a reduced parameter space. Furthermore, compared with the discriminative disctribution <span class="math inline">\(P_{21} \left( y \vert x , \theta \right)\)</span>, the joint distribution considered by the generative model is often hard to work with in practice and further simplifying assumptions are often necessary, or preferable, in order to make inference tractable.</p>
+<p>To understand why generative models require more modelling assumptions, we will consider the case of Boolean inputs <span class="math inline">\(x = \left( x_1, \cdots, x_n \right)\)</span>, <span class="math inline">\(x_j \in \lbrace 0, 1 \rbrace\)</span>.</p>
+<p>It can be instructive to update the factor graphs and draw some of the individual components of the input.</p>
+<div class="cell" data-execution_count="10">
+<div class="cell-output cell-output-display" data-execution_count="9">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="index_files/figure-html/cell-11-output-1.svg" class="img-fluid figure-img"></p>
+<p></p><figcaption aria-hidden="true" class="figure-caption">Discriminative model with two components of the input vector drawn.</figcaption><p></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell" data-execution_count="11">
+<div class="cell-output cell-output-display" data-execution_count="10">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="index_files/figure-html/cell-12-output-1.svg" class="img-fluid figure-img"></p>
+<p></p><figcaption aria-hidden="true" class="figure-caption">Generative model with two components of the input vector drawn.</figcaption><p></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Let us now look at the parameters necessary for the generative model by first considering the conditional probability table for <span class="math inline">\(P\left( x \vert y \right)\)</span> with <span class="math inline">\(x\)</span> represented as a single vector.</p>
+<table class="table">
+<tbody>
+<tr class="odd">
+<td></td>
+<td><span class="math inline">\(y = 0\)</span></td>
+<td><span class="math inline">\(y = 1\)</span></td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(x = (0, \cdots, 0)\)</span></td>
+<td><span class="math inline">\(\theta^0_{1}\)</span></td>
+<td><span class="math inline">\(\theta^1_{1}\)</span></td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(x = (1, \cdots, 0)\)</span></td>
+<td><span class="math inline">\(\theta^0_{2}\)</span></td>
+<td><span class="math inline">\(\theta^1_{2}\)</span></td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(\cdots\)</span></td>
+<td><span class="math inline">\(\cdots\)</span></td>
+<td><span class="math inline">\(\cdots\)</span></td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(x = (1, \cdots, 1)\)</span></td>
+<td><span class="math inline">\(\theta^0_{2^n}\)</span></td>
+<td><span class="math inline">\(\theta^1_{2^n}\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>We see that we have <span class="math inline">\(2 \times 2^n = 2^{n + 1}\)</span> parameters. The (conditional) probability constraints (on the columns) bring this count down to <span class="math inline">\(2 \left( 2^n - 1\right)\)</span>.</p>
+<p>The other factor in the generative model, <span class="math inline">\(P \left( y \right)\)</span>, is not an issue, as we only have one effective parameter given <span class="math inline">\(y\)</span> is a Boolean variable.</p>
+<p>For the discriminative model, we instead have to consider <span class="math inline">\(P \left( y \vert x \right)\)</span>. Here the conditional probability table is flipped.</p>
+<table class="table">
+<tbody>
+<tr class="odd">
+<td></td>
+<td><span class="math inline">\(x = (0, \cdots, 0)\)</span></td>
+<td><span class="math inline">\(\cdots\)</span></td>
+<td><span class="math inline">\(x = (1, \cdots, 1)\)</span></td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(y = 0\)</span></td>
+<td><span class="math inline">\(\theta^0_{1}\)</span></td>
+<td><span class="math inline">\(\cdots\)</span></td>
+<td><span class="math inline">\(\theta^0_{2^n}\)</span></td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(y = 1\)</span></td>
+<td><span class="math inline">\(\theta^1_{1}\)</span></td>
+<td><span class="math inline">\(\cdots\)</span></td>
+<td><span class="math inline">\(\theta^1_{2^n}\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>Simply flipping the conditionality, and again using the conditional probability constraints, leads to <span class="math inline">\(2^n\)</span> effective parameters. This is less parameters than those for the generative model. For large <span class="math inline">\(n\)</span>, essentially half as many.</p>
+<p>What is often done in generative models is to add further simplifying assumptions. In the Naive Bayes classifier for example, we assume each <span class="math inline">\(x_i\)</span> is conditionally independent of all other <span class="math inline">\(x_{-i}\)</span> given <span class="math inline">\(y\)</span>. Together with the product rule, this gives</p>
+<p><span class="math display">\[
+P \left(x \vert y \right) = \prod_i P \left( x_i \vert y \right).
+\]</span></p>
+<p>We can visualise this more granular factorization of the conditional probability by drawing the factor graph. This time using plate notation.</p>
+<div class="cell" data-execution_count="12">
+<div class="cell-output cell-output-display" data-execution_count="11">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="index_files/figure-html/cell-13-output-1.svg" class="img-fluid figure-img"></p>
+<p></p><figcaption aria-hidden="true" class="figure-caption">Generative model with Naive Bayes assumption.</figcaption><p></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Now, each <span class="math inline">\(x_i\)</span> has its own conditional probability table, which is simply</p>
+<table class="table">
+<tbody>
+<tr class="odd">
+<td></td>
+<td><span class="math inline">\(y = 0\)</span></td>
+<td><span class="math inline">\(y = 1\)</span></td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(x_i = 0\)</span></td>
+<td><span class="math inline">\(\theta^0_{0}\)</span></td>
+<td><span class="math inline">\(\theta^1_{0}\)</span></td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(x_i = 1\)</span></td>
+<td><span class="math inline">\(\theta^0_{1}\)</span></td>
+<td><span class="math inline">\(\theta^1_{1}\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>and the conditional probability constraints bring the number of parameters per input variable from four to two. Thus, overall we have <span class="math inline">\(2 n\)</span> parameters to estimate. This is now less than the <span class="math inline">\(2^n\)</span> of the discriminative model (provided <span class="math inline">\(n &gt; 2\)</span>).</p>
+<p>On top of the number of parameters that need to be estimated, in order to reliably estimate them, we need to observe each distinct instance multiple times. This is discussed in <span class="citation" data-cites="mitchell2020generative">(<a href="#ref-mitchell2020generative" role="doc-biblioref">Mitchell 2020</a>)</span>.</p>
+<div class="page-columns page-full"><p>We thus can, and often do, introduce futher bias in generative models in order to make them tractable. A consequence of this is that generative models can be less accurate, if they (i.e.&nbsp;the small world model) don’t reflect the large world model<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>, but (when they do) generative models require less data to train.</p><div class="no-row-height column-margin column-container"><li id="fn3" role="doc-endnote"><p><sup>3</sup>&nbsp;This is Savage’s <a href="https://errorstatistics.files.wordpress.com/2021/03/savage-forum-combined-searchable_red.pdf">terminology</a>, as presented by McElreath in Statistical Rethinking: <em>“All statisitcal modelling has these two frames: the small world of the model itself and the large world we hope to deploy the model in.”</em> <span class="citation" data-cites="mcelreath2020statistical">(<a href="#ref-mcelreath2020statistical" role="doc-biblioref">McElreath 2020, 19</a>)</span>.</p></li></div></div>
+</section>
+<section id="generative-models-can-deal-with-missing-data" class="level2">
+<h2 class="anchored" data-anchor-id="generative-models-can-deal-with-missing-data">Generative models can deal with missing data</h2>
+<p>Let’s turn to the often mentioned fact that generative models can deal with missing data. What this means is that they can still make predictions if given a vector of inputs <span class="math inline">\(\hat x = \left( \hat x_1, \cdots, \hat x_k, \bar x_{k+1}, \cdots, \bar x_n \right) = \left( \hat x_o, \bar x_m \right)\)</span>, where <span class="math inline">\(\bar x_m\)</span> are missing, whereas discriminative models can’t.</p>
+<p>When it comes to predicting <span class="math inline">\(\hat y\)</span> given <span class="math inline">\(\hat x\)</span> (and <span class="math inline">\(D\)</span>), we need the posterior predictive distribution, namely</p>
+<p><span class="math display">\[
+\begin{align*}
+P \left( \hat y \vert \hat x, D \right) &amp;= \int_\Theta P \left( \hat y, \theta \vert \hat x, D \right) \mathrm{d} \theta \\
+                                        &amp;= \int_\Theta P \left( \hat y \vert \hat x, \theta \right) P \left( \theta \vert D \right) \mathrm{d} \theta,
+\end{align*}
+\]</span></p>
+<p>where we assume that the past and future observations are conditionally independent given <span class="math inline">\(\theta\)</span>.</p>
+<p>In the case of missing inputs, we want to consider</p>
+<p><span class="math display">\[
+\begin{align*}
+P \left( \hat y \vert \hat x_o, \theta \right)  &amp;= \sum_{\bar x_m} P \left( \hat y, \bar x_m \vert \hat x_o, \theta \right) \\
+                                                &amp;= \sum_{\bar x_m} P \left( \hat y \vert \hat x_o, \bar x_m , \theta \right) P \left( \bar x_m \vert \hat x_o, \theta \right)
+\end{align*}
+\]</span></p>
+<p>and plug this into the posterior predictive distribution.</p>
+<div class="cell" data-execution_count="13">
+<div class="cell-output cell-output-display" data-execution_count="12">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="index_files/figure-html/cell-14-output-1.svg" class="img-fluid figure-img"></p>
+<p></p><figcaption aria-hidden="true" class="figure-caption">Discriminative model being used for prediction, with missing inputs <span class="math inline">\(\bar x_m\)</span>. Note that <span class="math inline">\(Xo\)</span>, <span class="math inline">\(Xm\)</span> and <span class="math inline">\(Y\)</span> replace <span class="math inline">\(\hat x_o\)</span>, <span class="math inline">\(\bar x_m\)</span> and <span class="math inline">\(\hat y\)</span> due to graphviz limitaitons.</figcaption><p></p>
+</figure>
+</div>
+</div>
+</div>
+<p>In the case of discriminative models, we have no way of evaluating the necessary probabilities because we only have <span class="math inline">\(P_{21} \left( y \vert x, \theta \right)\)</span>. We therefore cannot obtain <span class="math inline">\(P \left( \bar x_m \vert \hat x_o, \theta \right)\)</span>. We would need to instead resort to some form of imputation. This equates to making assumptions about the distribution <span class="math inline">\(P \left( x \right)\)</span>, which we would instead have if we consider an extended discriminative model. These can indeed deal with missing observations, given they model the full joint distribution, explicitly via <span class="math inline">\(P \left( y \vert x \right)\)</span> and <span class="math inline">\(P \left(x \right)\)</span>.</p>
+<div class="cell" data-execution_count="14">
+<div class="cell-output cell-output-display" data-execution_count="13">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="index_files/figure-html/cell-15-output-1.svg" class="img-fluid figure-img"></p>
+<p></p><figcaption aria-hidden="true" class="figure-caption">Generative model being used for prediction, with missing inputs <span class="math inline">\(\bar x_m\)</span>. Note that <span class="math inline">\(Xo\)</span>, <span class="math inline">\(Xm\)</span> and <span class="math inline">\(Y\)</span> replace <span class="math inline">\(\hat x_o\)</span>, <span class="math inline">\(\bar x_m\)</span> and <span class="math inline">\(\hat y\)</span> due to graphviz limitaitons.</figcaption><p></p>
+</figure>
+</div>
+</div>
+</div>
+<p>In the generative case, we instead have the joint distribution <span class="math inline">\(P_1 \left( x, y \vert \theta \right)\)</span>. We can therefore use Bayes theorem to get <span class="math inline">\(P \left( \hat y \vert \hat x_o, \bar x_m , \theta \right)\)</span>, as we would anyhow for prediction, and then use the joint distribution with the necessary marginalisations to get <span class="math inline">\(P \left( \bar x_m \vert \hat x_o, \theta \right)\)</span>.</p>
+<p>We can also consider more general forms of missing data, including missing labels and missing inputs in the training data. In the case of generative models, we can train them both in an unsupervised way, when we have no labels, and a semi-supervised way, when we have a few labels. In the case of discriminative models, Minka points out that the extended model can also be trained in a semi-supervised fashion <span class="citation" data-cites="minka2005discriminative">(<a href="#ref-minka2005discriminative" role="doc-biblioref">2005</a>)</span>. We will cover this in a future post.</p>
+
+
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="doc-bibliography">
+<div id="ref-bishop2006pattern" class="csl-entry" role="doc-biblioentry">
+Bishop, CM. 2006. <em>Pattern Recognition and Machine Learning</em>. Springer.
+</div>
+<div id="ref-devries2021bmlip" class="csl-entry" role="doc-biblioentry">
+de Vries, B, W Kouw, and MT Koudahl. 2021. <span>“Bayesian Machine Learning and Information Processing.”</span> Eindhoven University of Technology. <a href="https://biaslab.github.io/teaching/bmlip/">https://biaslab.github.io/teaching/bmlip/</a>.
+</div>
+<div id="ref-lasserre2006principled" class="csl-entry" role="doc-biblioentry">
+Lasserre, JA, CM Bishop, and TP Minka. 2006. <span>“Principled Hybrids of Generative and Discriminative Models.”</span> In <em>2006 IEEE Computer Society Conference on Computer Vision and Pattern Recognition (CVPR’06)</em>, 1:87–94. IEEE.
+</div>
+<div id="ref-loeliger2004introduction" class="csl-entry" role="doc-biblioentry">
+Loeliger, H-A. 2004. <span>“An Introduction to Factor Graphs.”</span> <em>IEEE Signal Processing Magazine</em> 21 (1): 28–41.
+</div>
+<div id="ref-mcelreath2020statistical" class="csl-entry" role="doc-biblioentry">
+McElreath, R. 2020. <em>Statistical Rethinking: A Bayesian Course with Examples in <span>R</span> and Stan</em>. Chapman; Hall/CRC.
+</div>
+<div id="ref-minka2005discriminative" class="csl-entry" role="doc-biblioentry">
+Minka, T. 2005. <span>“Discriminative Models, Not Discriminative Training.”</span> Technical Report MSR-TR-2005-144, Microsoft Research. <a href="https://www.microsoft.com/en-us/research/publication/discriminative-models-not-discriminative-training/">https://www.microsoft.com/en-us/research/publication/discriminative-models-not-discriminative-training/</a>.
+</div>
+<div id="ref-mitchell2020generative" class="csl-entry" role="doc-biblioentry">
+Mitchell, TM. 2020. <span>“Generative and Discriminative Classifiers: Naive Bayes and Logistic Regression.”</span> Draft chapter for Volume 2 of Machine Learning textbook. <a href="http://www.cs.cmu.edu/~tom/mlbook/NBayesLogReg.pdf">http://www.cs.cmu.edu/~tom/mlbook/NBayesLogReg.pdf</a>.
+</div>
+</div></section><section class="quarto-appendix-contents"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div quarto-reuse="quarto-reuse" class="quarto-appendix-contents"><a rel="license" href="https://creativecommons.org/licenses/by/4.0/">https://creativecommons.org/licenses/by/4.0/</a></div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    setTimeout(function() {
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      let href = ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+    tippyHover(ref, function() {
+      var popup = window.document.createElement('div');
+      cites.forEach(function(cite) {
+        var citeDiv = window.document.createElement('div');
+        citeDiv.classList.add('hanging-indent');
+        citeDiv.classList.add('csl-entry');
+        var biblioDiv = window.document.getElementById('ref-' + cite);
+        if (biblioDiv) {
+          citeDiv.innerHTML = biblioDiv.innerHTML;
+        }
+        popup.appendChild(citeDiv);
+      });
+      return popup.innerHTML;
+    });
+  }
+});
+</script>
+<script src="https://giscus.app/client.js" data-repo="bs-ds/blog" data-repo-id="R_kgDOG9LH-w" data-category="Comments" data-category-id="DIC_kwDOG9LH-84CN-s8" data-mapping="title" data-reactions-enabled="0" data-emit-metadata="0" data-input-position="top" data-theme="light" data-lang="en" crossorigin="anonymous" async="">
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

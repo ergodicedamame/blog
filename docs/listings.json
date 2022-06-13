@@ -2,6 +2,7 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/discriminative-vs-generative/index.html",
       "/posts/heatmaps-clustering/index.html",
       "/posts/how-to/index.html"
     ]
