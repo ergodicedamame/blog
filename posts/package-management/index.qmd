@@ -1,0 +1,163 @@
+---
+title: 'Working in Julia: Environments, packages, and all that jazz'
+subtitle: Comparing working in Julia (in JupyterLab) with working in Python using mamba.
+date: 2022/07/17
+image: logo.png
+categories:
+  - how-to
+  - julia
+jupyter:
+  jupytext:
+    formats: 'ipynb,qmd'
+    text_representation:
+      extension: .qmd
+      format_name: quarto
+      format_version: '1.0'
+      jupytext_version: 1.13.1
+  kernelspec:
+    display_name: Julia 1.7.3
+    language: julia
+    name: julia-1.7
+---
+
+```{julia}
+# TODO remove toml files for clean rerun. hide cell in blog.
+```
+
+This is a quick note on how to get up and running in Julia, comparing it to working in Python with mamba[^1] and IPython. 
+The focus is on setting up a "work station" for light-weight modelling in Julia.
+We will not consider package development, etc.
+
+[^1]: "Mamba is a _[faster and all around better]_ reimplementation of the conda package manager". See [repo](https://github.com/mamba-org/mamba).
+
+## Installing Julia
+
+The official, but not yet released, [juliaup](https://github.com/JuliaLang/juliaup) is the suggested way to install Julia, and manage multiple versions.
+There seems to also be a conda-forge [feedstock](https://github.com/conda-forge/juliaup-feedstock), so one can run `mamba install juliaup` instead of `curl -fsSL https://install.julialang.org | sh`.
+
+The juliaup commands are currently documented in the GitHub [README](https://github.com/JuliaLang/juliaup#using-juliaup).
+The most important are
+
+```juliaup add X.Y.Z```
+
+to install a given version of julia, and
+
+```julia +X.Y.Z```
+
+to run it.
+
+__NOTE:__ This is the first big difference with mamba, which manages (versions of) Python along with the packages in a given environment. This seems to be an oversight when it comes to reproducibility in Julia, unless there are future plans to somehow pin Julia in the Manifest.toml (see below) and/or integrate it with juliaup.
+
+
+## Environments and packages
+
+Once in the Julia REPL, `[` switches you to the Pkg REPL.
+With the `st` (or `status`) and `?` commands, you are then good to go.
+
+### Managing environments
+
+Environments are native in Julia via Pkg, but this is compared with virtualenv rather than mamba in the [docs](https://pkgdocs.julialang.org/v1/), and indeed has a number of differences to mamba.
+
+`activate .` in the Pkg REPL, or `Pkg.activate(".")` in the Julia REPL, will either switch to the environment in the current folder, or create new a new environment, and toml files, if this does not already exist.
+
+`activate`, with no argument, returns to default environment.
+
+Let's now see this in action.
+
+Listing the files in the current folder, we get the following.
+
+```{julia}
+readdir()
+```
+
+We now activate an environment in the current location.
+
+```{julia}
+import Pkg
+Pkg.activate(".")
+```
+
+And then install a package.
+
+```{julia}
+Pkg.add("Example")
+```
+
+Looking again at the files, we see a new Porject.toml and Manifest.toml. We also inspect their contents.
+
+```{julia}
+readdir()
+```
+
+```{julia}
+print(read("Project.toml", String))
+```
+
+```{julia}
+print(read("Manifest.toml", String))
+```
+
+Project.toml is like a hand crafted mamba environment.yaml file, whereas Manifest.toml is like an exported mamba environment file.
+
+```{julia}
+# TODO what is the differnece between activate and instantiate?
+Pkg.instantiate()
+```
+
+### Managing packages
+
+From above, we see that unlike in mamba, we need package UUIDs, so it is easier to manage packages via the Pkg REPL than manually tweaking the Project.toml.
+While this is a bit annoying, we can do `add A B C` to install multiple packages at once. Cf. `mamba install -c conda-forge A B C`.
+
+We can also use `add Example@0.4` to pin versions, and `add Example#master` for branches. 
+As well as installing unregistered packages, e.g. `add https://github.com/fredrikekre/ImportMacros.jl`, etc.
+
+`st [--manifest]` allows us to see what packages are contained in the environment.
+
+`rm Example`, and variants for Manifest, allow us to remove packages. See [here](https://pkgdocs.julialang.org/v1/managing-packages/#Removing-packages).
+
+Package management in Julia is tightly coupled with GitHub, but now there is also a Julia package server, used by default, see [here](https://pkgdocs.julialang.org/v1/managing-packages/#Pkg-client/server).
+
+### Using environments
+
+TODO 
+
+- read https://docs.julialang.org/en/v1/manual/code-loading/#Environments and talk about how julia selects "closes" env by default.
+
+
+## Importing functions and packages
+
+TODO 
+
+- `using Example` - precompiles pkg and dependencies. import doesn't?
+- `import Example`
+- read https://docs.julialang.org/en/v1/manual/code-loading/
+
+## Julia kernels
+
+TODO
+
+- IJulia kernels
+
+
+## Using Python packages
+
+TODO
+
+- figure out how to choose conda environment being used
+- note that julia can install python via conda - not mamba. figure out.
+- what about R?
+
+
+## Other features in Julia Pkg
+
+TODO
+
+- testing is also done via Pkg.
+
+
+## Other, related, useful packages and features in Julia
+
+TODO
+
+- [Revise.jl](https://timholy.github.io/Revise.jl/stable/) may be similar to autoreload?!
