@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://bs-ds.github.io/blog/index.html</loc>
-    <lastmod>2022-06-13T07:33:11.248Z</lastmod>
-  </url>
-  <url>
-    <loc>https://bs-ds.github.io/blog/about.html</loc>
-    <lastmod>2022-06-13T07:33:11.560Z</lastmod>
-  </url>
-  <url>
-    <loc>https://bs-ds.github.io/blog/posts/how-to/index.html</loc>
-    <lastmod>2022-06-13T07:33:11.904Z</lastmod>
+    <loc>https://bs-ds.github.io/blog/posts/heatmaps-clustering/index.html</loc>
+    <lastmod>2022-08-12T17:04:45.493Z</lastmod>
   </url>
   <url>
     <loc>https://bs-ds.github.io/blog/posts/discriminative-vs-generative/index.html</loc>
-    <lastmod>2022-06-13T07:33:12.504Z</lastmod>
+    <lastmod>2022-08-12T17:04:46.533Z</lastmod>
   </url>
   <url>
-    <loc>https://bs-ds.github.io/blog/posts/heatmaps-clustering/index.html</loc>
-    <lastmod>2022-06-13T07:33:13.180Z</lastmod>
+    <loc>https://bs-ds.github.io/blog/posts/how-to/index.html</loc>
+    <lastmod>2022-08-12T17:04:46.909Z</lastmod>
+  </url>
+  <url>
+    <loc>https://bs-ds.github.io/blog/about.html</loc>
+    <lastmod>2022-08-12T17:04:47.509Z</lastmod>
+  </url>
+  <url>
+    <loc>https://bs-ds.github.io/blog/index.html</loc>
+    <lastmod>2022-08-12T17:04:47.933Z</lastmod>
   </url>
 </urlset>
