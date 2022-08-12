@@ -19,7 +19,7 @@ jobs:
     # - name: set up ci: quarto, etc.
 
     - name: set up quarto 
-      uses: quarto-dev/quarto-actions/install-quarto@main
+      uses: quarto-dev/quarto-actions/setup@v2
 
     # - name: lint notebooks
 
