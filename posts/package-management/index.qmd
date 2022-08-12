@@ -1,6 +1,6 @@
 ---
 title: 'Working in Julia: Environments, packages, and all that jazz'
-subtitle: Comparing working in Julia (in JupyterLab) with working in Python using mamba.
+subtitle: Comparing working in Julia with working in Python using mamba.
 date: 2022/07/17
 image: logo.png
 categories:
@@ -21,19 +21,34 @@ jupyter:
 ---
 
 ```{julia}
-# TODO remove toml files for clean rerun. hide cell in blog.
+#| echo: false
+
+# NOTE This works when using quarto render, which deals with pwd.
+# It does not work if you run the notebook locally and spin up 
+# the IJulia kernel from a different path. Usual kernels issue. 
+for f in ["Project.toml", "Manifest.toml"]
+  if f in readdir()
+    rm(f)
+  end
+end
 ```
 
 This is a quick note on how to get up and running in Julia, comparing it to working in Python with mamba[^1] and IPython. 
 The focus is on setting up a "work station" for light-weight modelling in Julia.
 We will not consider package development, etc.
 
-[^1]: "Mamba is a _[faster and all around better]_ reimplementation of the conda package manager". See [repo](https://github.com/mamba-org/mamba).
+[^1]: "Mamba is a _[faster and all around better]_ reimplementation of the conda package manager" - [mamba repo](https://github.com/mamba-org/mamba).
 
 ## Installing Julia
 
 The official, but not yet released, [juliaup](https://github.com/JuliaLang/juliaup) is the suggested way to install Julia, and manage multiple versions.
-There seems to also be a conda-forge [feedstock](https://github.com/conda-forge/juliaup-feedstock), so one can run `mamba install juliaup` instead of `curl -fsSL https://install.julialang.org | sh`.
+There seems to also be a conda-forge [feedstock](https://github.com/conda-forge/juliaup-feedstock), so one can run
+
+```mamba install juliaup```
+
+instead of 
+
+````curl -fsSL https://install.julialang.org | sh````
 
 The juliaup commands are currently documented in the GitHub [README](https://github.com/JuliaLang/juliaup#using-juliaup).
 The most important are
@@ -46,8 +61,8 @@ to install a given version of julia, and
 
 to run it.
 
-__NOTE:__ This is the first big difference with mamba, which manages (versions of) Python along with the packages in a given environment. This seems to be an oversight when it comes to reproducibility in Julia, unless there are future plans to somehow pin Julia in the Manifest.toml (see below) and/or integrate it with juliaup.
-
+__NOTE:__ This is the first big difference with mamba, which manages (versions of) Python along with the packages in a given environment. 
+This seems to be an oversight when it comes to reproducibility in Julia, unless there are future plans to somehow pin Julia in the Manifest.toml (see below) and/or integrate it with juliaup.
 
 ## Environments and packages
 
@@ -56,13 +71,16 @@ With the `st` (or `status`) and `?` commands, you are then good to go.
 
 ### Managing environments
 
-Environments are native in Julia via Pkg, but this is compared with virtualenv rather than mamba in the [docs](https://pkgdocs.julialang.org/v1/), and indeed has a number of differences to mamba.
+Environments are core to Julia via Pkg.
+This is however compared with virtualenv rather than mamba in the Pkg [docs](https://pkgdocs.julialang.org/v1/), and indeed has a number of differences to mamba.
 
-`activate .` in the Pkg REPL, or `Pkg.activate(".")` in the Julia REPL, will either switch to the environment in the current folder, or create new a new environment, and toml files, if this does not already exist.
+`activate .` in the Pkg REPL, or `Pkg.activate(".")` in the Julia REPL, will either switch to the environment in the current folder[^2], or create new a new environment, and toml files, if this does not already exist.
 
-`activate`, with no argument, returns to default environment.
+[^2]: This is to be taken with a pinch of salt in Jupyter, where kernels are not necessarily initialised relative to the path of the notebook.
 
-Let's now see this in action.
+`activate`, with no argument, returns to the default environment.
+
+Let's now see this in action...
 
 Listing the files in the current folder, we get the following.
 
@@ -73,6 +91,7 @@ readdir()
 We now activate an environment in the current location.
 
 ```{julia}
+#| output: false
 import Pkg
 Pkg.activate(".")
 ```
@@ -83,11 +102,13 @@ And then install a package.
 Pkg.add("Example")
 ```
 
-Looking again at the files, we see a new Porject.toml and Manifest.toml. We also inspect their contents.
+Listing the files again, we see a new Porject.toml and Manifest.toml.
 
 ```{julia}
 readdir()
 ```
+
+We can also inspect their contents.
 
 ```{julia}
 print(read("Project.toml", String))
@@ -97,7 +118,7 @@ print(read("Project.toml", String))
 print(read("Manifest.toml", String))
 ```
 
-Project.toml is like a hand crafted mamba environment.yaml file, whereas Manifest.toml is like an exported mamba environment file.
+Project.toml is like a hand crafted mamba environment.yaml file, whereas Manifest.toml is like an exported (and thus frozen) mamba environment file.
 
 ```{julia}
 # TODO what is the differnece between activate and instantiate?
@@ -106,11 +127,17 @@ Pkg.instantiate()
 
 ### Managing packages
 
-From above, we see that unlike in mamba, we need package UUIDs, so it is easier to manage packages via the Pkg REPL than manually tweaking the Project.toml.
-While this is a bit annoying, we can do `add A B C` to install multiple packages at once. Cf. `mamba install -c conda-forge A B C`.
+From above, we see that unlike in mamba, we need package UUIDs[^3], so it is easier to manage packages via the Pkg REPL than manually tweaking the Project.toml.
+While this is a bit annoying, we can do `add A B C` to install multiple packages at once. Cf. 
+
+```mamba install -c conda-forge A B C```
+
+[^3]: This is necessary because Julia supports federated package management and there is no central naming authority, so multiple packages can have the same name. See [docs](https://docs.julialang.org/en/v1/manual/code-loading/#Federation-of-packages).
 
 We can also use `add Example@0.4` to pin versions, and `add Example#master` for branches. 
-As well as installing unregistered packages, e.g. `add https://github.com/fredrikekre/ImportMacros.jl`, etc.
+As well as installing unregistered packages, e.g. 
+
+```add https://github.com/fredrikekre/ImportMacros.jl```
 
 `st [--manifest]` allows us to see what packages are contained in the environment.
 
