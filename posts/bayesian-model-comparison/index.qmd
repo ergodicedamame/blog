@@ -1,7 +1,7 @@
 ---
 title: Bayesian comparison of cross-validated algorithms
 subtitle: 'Model selection via a Bayesian correlated t-test.'
-date: 2022/11/11
+date: 2022/11/18
 image: thumb.png
 categories:
   - ML
@@ -32,7 +32,7 @@ jupyter:
 
 Robust model evaluation should be second nature for those of us that work with data and 
 predictive models. 
-When determining whether one model is better than another, there are many techniques one can use.
+When determining whether one model is better than another, there are many techniques that one can use.
 Very common ones include *bootstrapping* and *cross-validation*. 
 
 First and foremost however, one must make a decision as to what "better" means.
@@ -40,13 +40,12 @@ Better in what way?
 More accurate? 
 Faster? 
 More (budget) efficient? 
-We will come to this point again later.
+We will revisit this later.
 For now, let's assume that better means "obtains a higher F1 score".
 F1 is just an example, and we could consider any other score. 
-Once we have decided to say that the model with highest F1 score is better, the more serious question arises: how do we know whether a model is indeed better? 
+Once we have decided to say that the model with the highest F1 score is better, the more serious question arises: how do we know whether a model is indeed better? 
 Can we just take an average score across a test set and compare the numbers, i.e. plain-old pointwise comparison? 
-I think many will get a sense of discomfort just uttering that. 
-We would like something more robust and which, ideally, takes uncertainty into account. 
+I think we agree that we would like something more robust and which, ideally, takes uncertainty into account. 
 
 We ideally want to have a probability distribution which informs us, in some way, what the probability of one model being better than the other is. 
 That is, we want something like $P(M_1 > M_2 | D)$, where $M_1 > M_2$ denotes that model $M_1$ is better than model $M_2$ and $D$ is the data used for the comparison.
@@ -59,8 +58,8 @@ What a great motive to enter the wonderful world of *Bayesian modelling*[^1].
 
 ## Problem statement
 
-Assume that we are interested in comparing the performance (accuracy, recall, precision, $\text{F}_{\beta}$, etc.) of two predictors.
-If using cross-validation, @bouckaert2003choosing recommends making this more robust (i.e. return more stable statistics) by using *repeated cross-validation*; that is performing evaluation via $m$ repetitions of $k$-fold cross-validation. 
+Assume that we are interested in comparing the performance (e.g. accuracy, recall, precision, $\text{F}_{\beta}$, etc.) of two predictors.
+If using cross-validation, @bouckaert2003choosing recommends making this more robust (i.e. returning more stable statistics) by using *repeated cross-validation*; that is performing evaluation via $m$ repetitions of $k$-fold cross-validation.
 Both classifiers will be trained on the same data and tested on the same data and we can therefore collect the *differences of their performances* 
 $$ 
 \delta = \{\delta_{1}, \delta_{2},. . ., \delta_{n}\}
@@ -78,26 +77,26 @@ In particular, the assumtions that we bake into the model will make the model mo
 Oversimplifying assumptions would lead us to a model that is not able to describe the underlying process.
 Complex interactions would lead to a model that is intractable. 
 Of course these days, with powerful probabilist programming languages, it is much easier to build a complex model and have a black-box inference algorithm that will give us results. 
-However, this isn't a free meal.
+This, however, isn't a free meal.
 Complex models, especially hierachical ones, lead to complex inference processes that require expertise to diagnose.
 Moreover, the choce of priors will also become a delicate issue.
 
 In general, we need to balance two things:
 
-1) the modelling assumptions
-2) the techniques to perform inference, i.e. the computational techniques
+1. the modelling assumptions,
+2. the techniques to perform inference, i.e. the computational techniques.
 
-In the case we are considering here, i.e. comparing models across cross-validation scores, one important modelling aspect is that the scores are not independent: in fact the resulting models will have an overlapping training set and an overlapping testing set.
+In the case that we are considering here, i.e. comparing models across cross-validation scores, one important modelling aspect is that the scores are not independent: in fact the resulting models will have an overlapping training set and an overlapping testing set.
 
-In this blog we will be presenting a model that was developed in @corani2015bayesian.
-This is a relatively simple model which uses the powerful modelling techniques of exponential families and conjugacy to simplify inference.
+In this post, we will be presenting a model that was developed in @corani2015bayesian.
+This is a relatively simple model which uses the properties of exponential families and conjugacy to simplify inference.
 Note that this is just *one* possible model of the process, and it is by no means the best model!
 
 ## Corani and Benavoli's Bayesian correlated t-test
 
 The model proposed by @corani2015bayesian is as follows.
 Assume that the observations $\delta_i$, are **identically distributed but *dependent***. 
-Specifically, let the observations have the same mean, $\mu$, the same precision, $\nu$, and be equally correlated with each other with correlation $\rho > 0$. 
+Specifically, let the observations have the same mean, $\mu$, the same precision, $\nu,$ and be equally correlated with each other with correlation $\rho > 0$. 
 This is the case when the $n$ observations are the $n$ differences of performance between two predictors yielded by cross-validation. 
 The data generation process is then modelled as:
 $$
@@ -184,18 +183,20 @@ where $\hat{\delta} = \frac{\Sigma_{i = 1}^{n} \delta_{i}}{n}$ and $\hat{\sigma}
 
 ## Time to code this up!
 
-To see this in action the first thing we need is some data and repeated cross-validation predictions for two different algorithms.
-We use the *breast cancer* dataset from *sklearn*:
-
 ```{python}
+import matplotlib.pyplot as plt
 import numpy as np
 import scipy
+from scipy import stats
 from sklearn.datasets import load_breast_cancer
 from sklearn.model_selection import RepeatedStratifiedKFold
 from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import f1_score
 ```
+
+To see this in action the first thing we need is some data and repeated cross-validation predictions for two different algorithms.
+We use the *breast cancer* dataset from *sklearn*:
 
 ```{python}
 data = load_breast_cancer()
@@ -280,7 +281,7 @@ mean, variance, dof = compute_statistics(
 
 One useful thing we can do is to select a *region of practical equivalence, ROPE*. 
 This is a region where the difference in performance can be considered *practically equivalent*, i.e. a difference lying within the ROPE is an inconsequential difference. 
-Clearly the choice of ROPE is subjective and will depend on the *metric* and the *scale* we use to compare algorithms in addition to our subjective understanding of equivalence in the given situation. See @kruske2013best and @benavoli2017timeforachange for more details.
+Clearly the choice of ROPE is subjective and will depend on the *metric* and the *scale* we use to compare algorithms in addition to our understanding of equivalence in the given situation. See @kruske2013best and @benavoli2017timeforachange for more details.
 
 Here we will say that a difference of 1% in performance between the two models makes the performance practically equivalent.
 ```{python}
@@ -330,9 +331,6 @@ And what's nicer we can look at the distribution as the matching prior returns a
 
 ```{python}
 #| echo: false
-import matplotlib.pyplot as plt
-from scipy import stats
-
 t_dist_params = (dof, mean, np.sqrt(variance))
 hdi = stats.t.ppf([0.03, 0.97], *t_dist_params)
 mean = stats.t.mean(*t_dist_params)
@@ -402,7 +400,9 @@ This will be given by the area within the rope region, above denoted by $P(M_1 \
 4) we can make meaningful decision based on requiring that the probability of a model being better than another has to be at least 95%, say.
 
 ## Cost sensitive decisions
-We will be dealing with this in more detail in a separate blog post. 
+
+While we will be dealing with this in more detail in a separate blog post, let's have a first stab.
+
 In the real world, it is usually the case that we want to reason about situations and make decisions based on costs and errors. 
 Phrased differently, the choice of the cost measure should depend on how the system is going to be used, rather than on any inherent specification of the training process.
 The issue with doing this is that it is hard. 
@@ -412,7 +412,7 @@ However if we can specify costs then decision making based on these would be the
 In our situation, in order to do cost-sensitive analysis/decision making, all we need is to specify a cost function -- we won't need to run an optimisation on this objective function. 
 This is a function that defines the loss (or cost) we incur in making a given decision (e.g. the wrong decision).
 A typical example is whether to give more importance to a false positive or a false negative.
-For our given situation and for the sake of exposition let's assume that the random forest model takes 4 times longer to train. 
+For our given situation and for the sake of exposition, let's assume that the random forest model takes 4 times longer to train. 
 There are three decisions we can make 
 
 1) SVM is better than RF
@@ -431,8 +431,8 @@ Consider the following cost-matrix:
 |               |               |                    |                    |
 +---------------+---------------+--------------------+--------------------+
 
-where the $(i, j)$th entry is the cost incurred in making decision $i$ when $j$ is correct.
-Here we have a $2 \times 3$ matrix as we only consider the options of selecting the SVM or the RF, no abstention or anything else.
+where the $(i, j)$th entry is the cost incurred by making decision $i$ when $j$ is correct.
+Here we have a $2 \times 3$ matrix as we only consider the options of selecting the SVM or the RF, no abstention, or anything else.
 
 In this case we have:
 
@@ -447,7 +447,7 @@ In this case we have:
   + 0 if RF is indeed better
 
 
-The **expected cost** can then be obtained by multiplying the cost_matrix with the posterior probabilities
+The *expected cost* can then be obtained by multiplying the cost_matrix with the posterior probabilities
 ```{python}
 cost_matrix = np.array([
   [0., -5., 2.],
@@ -466,5 +466,5 @@ print(f"\nCost of deciding on RF:", round(expected_cost[1], 4))
 
 The lowest cost would determine the optimal decision.
 We see that we would incur a significant cost in choosing the SVM over the RF. 
-Of course we could have made things even more extreme by having specified more aggressive costs.
+Of course, we could have made things even more extreme by specifying more aggressive costs.
 And further, we could have extended the possibilities, e.g. adding a row for "no decision made".
