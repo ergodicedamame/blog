@@ -1,0 +1,470 @@
+---
+title: Bayesian comparison of cross-validated algorithms
+subtitle: 'Model selection via a Bayesian correlated t-test.'
+date: 2022/11/11
+image: thumb.png
+categories:
+  - ML
+  - Theory
+  - Model evaluation
+  - Bayes
+  - Bayesian estimation
+  - Cross-validation
+bibliography: ../references.bib
+jupyter:
+  jupytext:
+    text_representation:
+      extension: .qmd
+      format_name: quarto
+      format_version: '1.0'
+      jupytext_version: 1.13.7
+  kernelspec:
+    display_name: Python 3.6.15 ('fgm')
+    language: python
+    name: python3
+---
+
+```{python}
+#| eval: false
+#| echo: false
+!pip install -r requirements.txt
+```
+
+Robust model evaluation should be second nature for those of us that work with data and 
+predictive models. 
+When determining whether one model is better than another, there are many techniques one can use.
+Very common ones include *bootstrapping* and *cross-validation*. 
+
+First and foremost however, one must make a decision as to what "better" means.
+Better in what way? 
+More accurate? 
+Faster? 
+More (budget) efficient? 
+We will come to this point again later.
+For now, let's assume that better means "obtains a higher F1 score".
+F1 is just an example, and we could consider any other score. 
+Once we have decided to say that the model with highest F1 score is better, the more serious question arises: how do we know whether a model is indeed better? 
+Can we just take an average score across a test set and compare the numbers, i.e. plain-old pointwise comparison? 
+I think many will get a sense of discomfort just uttering that. 
+We would like something more robust and which, ideally, takes uncertainty into account. 
+
+We ideally want to have a probability distribution which informs us, in some way, what the probability of one model being better than the other is. 
+That is, we want something like $P(M_1 > M_2 | D)$, where $M_1 > M_2$ denotes that model $M_1$ is better than model $M_2$ and $D$ is the data used for the comparison.
+In fact, we may want to do more than that. 
+Ideally, we would want a distribution specifying what the probability of one model being better than another is for each given performance difference. 
+That is, we would like a distribution over the true performance difference of the two algorithms.
+What a great motive to enter the wonderful world of *Bayesian modelling*[^1]. 
+
+[^1]: See, e.g. @kruske2013best, for a nice, rapid tour of Bayesian modelling for group comparisons.
+
+## Problem statement
+
+Assume that we are interested in comparing the performance (accuracy, recall, precision, $\text{F}_{\beta}$, etc.) of two predictors.
+If using cross-validation, @bouckaert2003choosing recommends making this more robust (i.e. return more stable statistics) by using *repeated cross-validation*; that is performing evaluation via $m$ repetitions of $k$-fold cross-validation. 
+Both classifiers will be trained on the same data and tested on the same data and we can therefore collect the *differences of their performances* 
+$$ 
+\delta = \{\delta_{1}, \delta_{2},. . ., \delta_{n}\}
+$$ 
+where $n=mk$. Denote the sample mean and sample variance of the differences as $\hat{\delta}$ and $\hat{\sigma}^{2}$.
+
+What can we say about these samples? Well, one thing is that these samples are almost certainly *noisy* observations of an underlying true difference of performance between the two algorithms. 
+That is, there exist a hidden performance difference which we don't know but that manifest itself, with noise, through these samples. 
+For instance, if we assume that the $\delta_{i}$ s are i.i.d. then we could say that the $\delta_{i}$ are samples from a distribution with a true underlying mean, which would be the mean of interest to us.
+We could then further assign a prior distribution to that true mean (and any other parameters in the specification of the sampling distribution) and, after observing some samples, perform inference to construct the posterior distribution over the true mean, given the observed data.
+This is the standard paradigm of Bayesian modelling.
+
+There are infinite ways to model such a process but we can follow the aphorism, gifted to us by [George Box](https://en.wikipedia.org/wiki/All_models_are_wrong_), that none of them will be correct, but some of them may be useful.
+In particular, the assumtions that we bake into the model will make the model more or less useful. 
+Oversimplifying assumptions would lead us to a model that is not able to describe the underlying process.
+Complex interactions would lead to a model that is intractable. 
+Of course these days, with powerful probabilist programming languages, it is much easier to build a complex model and have a black-box inference algorithm that will give us results. 
+However, this isn't a free meal.
+Complex models, especially hierachical ones, lead to complex inference processes that require expertise to diagnose.
+Moreover, the choce of priors will also become a delicate issue.
+
+In general, we need to balance two things:
+
+1) the modelling assumptions
+2) the techniques to perform inference, i.e. the computational techniques
+
+In the case we are considering here, i.e. comparing models across cross-validation scores, one important modelling aspect is that the scores are not independent: in fact the resulting models will have an overlapping training set and an overlapping testing set.
+
+In this blog we will be presenting a model that was developed in @corani2015bayesian.
+This is a relatively simple model which uses the powerful modelling techniques of exponential families and conjugacy to simplify inference.
+Note that this is just *one* possible model of the process, and it is by no means the best model!
+
+## Corani and Benavoli's Bayesian correlated t-test
+
+The model proposed by @corani2015bayesian is as follows.
+Assume that the observations $\delta_i$, are **identically distributed but *dependent***. 
+Specifically, let the observations have the same mean, $\mu$, the same precision, $\nu$, and be equally correlated with each other with correlation $\rho > 0$. 
+This is the case when the $n$ observations are the $n$ differences of performance between two predictors yielded by cross-validation. 
+The data generation process is then modelled as:
+$$
+\delta = I_{n \times 1}\mu + v
+$$
+where $v$ is a noise vector with zero mean and covariance matrix $\Sigma_{n \times n}$ with the following structure: each diagonal element equals $\sigma^{2} = 1/\nu$; non-diagonal elements equal $\rho \sigma^{2}$. 
+This is knows as the *interclass covariance matrix*. 
+
+Define $\Sigma = \sigma^{2} M$ with $M$ an $(n \times n)$ correlation matrix, e.g. in $3d$
+$$
+M =
+  \left[ {\begin{array}{cc}
+    1 & \rho & \rho \\
+    \rho & 1 & \rho\\
+    \rho & \rho & 1\\
+  \end{array} } \right]
+$$
+
+@nadeaubengio2003 show that the correlation between the cross-validation results is positive and therefore, since $\sigma^{2} > 0$, $\Sigma$ is invertible and positive definite.
+
+We have the basic setup but we will need to define a generative process; a prior over $\mu$ (the quantity of interest) and a likelihood (i.e. a sampling distribution). 
+For the sampling distribution of correlated observations assume the noise vector, $v$, to be distributed as a multivariate Normal distribution:
+$$
+P(\delta| \mu, \Sigma) = \frac{
+  \exp(-\frac{1}{2}(\delta - I\mu)^{T}\Sigma^{-1}(\delta - I\mu))}
+  {(2\pi)^{n/2}\sqrt{|\Sigma|}}
+$$
+
+We ultimately want a distribution over $\mu$. 
+We could go about this by defining priors over the three parameters, $\mu$, $\sigma^{2}$ and $\rho$, and inferring the posterior over these. 
+The approach taken by the authors here is simpler and, importantly, allows us to get the posterior in closed form. 
+This is achieved by avoiding the need to estimate $\rho$ through use of the Nadeau-Bengio heuristic estimate for the correlation. 
+
+Specifically Nadeau and Bengio propose to take $\rho = \frac{n_{\text{test}}}{n_{\text{total}}}$, where $n_{\text{test}}$ is the size of the test set and $n_{\text{total}} = n_{\text{test}} + n_{\text{train}}$, i.e. the total dataset size.
+
+:::{.callout-note collapse="true"}
+## The idea behind the choice of correlation 
+
+See @nadeaubengio2003 sections 3 and 5 for details. 
+The main points and heuristics behind this choice for the correlation factor are:
+
+* The real $\rho$ is unknown, in fact usually this is just set to $0$ meaning that correlation is not accounted for.
+This can lead to underestimates of the estimated variance. 
+In the paper the authors propose $\rho=\rho_{0}=\frac{n_{\text{test}}}{n_{\text{total}}}$. 
+Note that this choice, as stated by the authors, is a gross approximation. 
+Yet it is better than pretending that $\rho=0$.
+
+* The choice is made with an important assumption -- that the specific training instances don't matter, just the training set size. 
+This is a very strong assumption and one that isn't generically justified.
+
+* This correction is good for stable algorithms (*c.f.* the point above), i.e. ones that are not too sensitive to perturbation of the training set. Or for algorithms with low capacity compared to training set size.
+
+* The idea is that the correlation should reduce as more training data is used. 
+More training data should stabilise the algorithm. 
+That is, as the data size increases the model should approach saturation and, therefore, as we keep adding data the resulting decision function shouldn't change too much.
+:::
+
+Okay, so now we're in business! With $\rho$ fixed we can infer the posterior over $\mu$.
+
+Choose the joint prior for the mean and precision parameters of the Normal distribution to be
+$$P(\mu, \nu | \mu_{0}, k_{0}, a, b) = NG(\mu, \nu; \mu_{0}, k_{0}, a, b)
+$$
+where $NG$ is the standard Normal-Gamma.
+This is a [*conjugate prior*](https://en.wikipedia.org/wiki/Normal-gamma_distribution), to the normal, which makes modelling easier. 
+
+Because of the conjugacy, the posterior over $\{\mu, \nu\}$ will be a Normal-Gamma also, i.e.
+$$
+P(\mu, \nu| \delta, \mu_{0}, k_{0}, a, b, \rho) = NG(\mu, \nu; \tilde{\mu}_{n}, \tilde{k}_{n}, \tilde{a}_{n}, \tilde{b}_{n})
+$$
+
+We are interested in the distribution over $\mu$. In order to obtain that, we have to marginalise over $\nu$. Doing so results in a Student's t-distribution for $\mu$  [-@corani2015bayesian]
+$$
+P(\mu|\delta, \mu_{0}, k_{0}, a, b, \rho) = St(\mu; 2\tilde{a}_{n}, \tilde{\mu}_{n}, \frac{\tilde{b}_{n}\tilde{k}_{n}}{\tilde{a}_{n}})
+$$
+
+The expression for the parameters of the Student distribution are a little unwieldy, however if we use what is called a *matching prior*[^2] then this is simplified.
+We use the matching prior given by $\mu_{0} = 0$, $k_{0} \rightarrow \infty$, $a = -1/2$ and $b = 0$ to get:
+$$
+St(\mu; n - 1, \hat{\delta}, (\frac{1}{n} + \frac{\rho}{1 - \rho})\hat{\sigma}^{2})
+$$
+where $\hat{\delta} = \frac{\Sigma_{i = 1}^{n} \delta_{i}}{n}$ and $\hat{\sigma}^{2} = \frac{\Sigma_{i = 1}^{n}(\delta_{i} - \hat{\delta})^{2}}{n - 1}$
+
+[^2]: A *matching prior* is a prior for which posterior probability statements about the parameter also have an interpretation as confidence statements in the sampling model; i.e. the posterior will return properties that match the frequentist's analysis.
+
+## Time to code this up!
+
+To see this in action the first thing we need is some data and repeated cross-validation predictions for two different algorithms.
+We use the *breast cancer* dataset from *sklearn*:
+
+```{python}
+import numpy as np
+import scipy
+from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import RepeatedStratifiedKFold
+from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import f1_score
+```
+
+```{python}
+data = load_breast_cancer()
+target = data["target"]
+```
+```{python}
+#| echo: false
+print(
+  f"Number of instances in total = {len(target)}"
+  f"\nOf which num_pos = {len(np.where(target==1)[0])} and "
+  f"num_neg = {len(np.where(target == 0)[0])}"
+)
+```
+```{python}
+target_names = ["malignant", "benign"]
+X_cancer, Y_cancer = data.data, data.target
+```
+
+
+Now that we have the data let's run the repeated cross-validation for two models, here we use an SVM with linear kernel and a Random Forest classifier:
+```{python}
+n_repetitions = 10
+n_folds = 5
+
+RSKF = RepeatedStratifiedKFold(
+  n_splits=n_folds, n_repeats=n_repetitions, random_state=23
+)
+
+models = {"svm": SVC, "rf": RandomForestClassifier}
+
+model_scores = {}
+
+for model_name, model in models.items():
+  scores = []
+  for i, (train_indices, test_indices) in enumerate(RSKF.split(X_cancer, Y_cancer)):
+    x_train, x_test = X_cancer[train_indices], X_cancer[test_indices]
+    y_train, y_test = Y_cancer[train_indices], Y_cancer[test_indices]
+    
+    clf = model().fit(x_train, y_train)
+    y_pred = clf.predict(x_test)
+
+    f1 = f1_score(y_test, y_pred)
+
+    scores.append(f1)
+  
+  model_scores[model_name] = np.asarray(scores)
+```
+
+Now that we have the scores for each model let's perform the test. 
+We'll first need to compute the array of differences, $\delta$ and then we're in business.
+
+```{python}
+# * create array of differences; we do rf - svm
+delta = model_scores["rf"] - model_scores["svm"]
+```
+```{python}
+#| code-fold: true
+#| code-summary: code for `compute_statistics`
+def compute_statistics(
+  perf_differences, n_repetitions,
+  ):
+  """
+  Given the m*k length array holind m-repetitions of k-fols, will compute 
+  the following statistics: the mean, the Nadeau-Bengio corrected 
+  variance and the number of degrees of freedom for the t-distribution.
+  """
+  mean = np.mean(perf_differences)
+  variance = np.var(perf_differences, ddof=1)
+  # * Now account for the correlations across measurements with the 
+  # * Nadeau-Bengio correction of variance
+  num_of_measurements = perf_differences.size
+  correlation = n_repetitions / num_of_measurements
+  variance *= 1 / num_of_measurements + correlation / (1 - correlation)
+  return mean.item(), variance.item(), num_of_measurements - 1
+```
+```{python}
+# * obtain the relevant statistics
+mean, variance, dof = compute_statistics(
+  perf_differences=delta, n_repetitions=n_repetitions
+)
+```
+
+One useful thing we can do is to select a *region of practical equivalence, ROPE*. 
+This is a region where the difference in performance can be considered *practically equivalent*, i.e. a difference lying within the ROPE is an inconsequential difference. 
+Clearly the choice of ROPE is subjective and will depend on the *metric* and the *scale* we use to compare algorithms in addition to our subjective understanding of equivalence in the given situation. See @kruske2013best and @benavoli2017timeforachange for more details.
+
+Here we will say that a difference of 1% in performance between the two models makes the performance practically equivalent.
+```{python}
+#| code-fold: true
+#| code-summary: code for `get_t_dist_posterior_probs`
+def get_t_dist_posterior_probs(
+  mean, variance, dof, rope = (0.0, 0.0)
+):
+  """Compute and return probability mass to the left of the given rope, 
+  within the given rope and to the right of the given rope for a 
+  t-distribution specified by the given mean, variance and degrees 
+  of freedom. 
+  NB: probabilities are computed from the cumulative Student distribution, not 
+  from a sampled posterior.
+  """
+  # * Deal with the situation where the variance is very small by assigning entire 
+  # * probability mass to the appropriate regions
+  if np.isclose(variance, 0.0):
+    prob_left = float(mean < rope[0])
+    prob_right = float(mean > rope[1])
+  # * Otherwise compute the probability for the specified t-distribution.
+  else: 
+    std = np.sqrt(variance)
+    prob_left = scipy.stats.t.cdf(rope[0], dof, loc=mean, scale=std)
+    prob_right = 1 - scipy.stats.t.cdf(rope[1], dof, loc=mean, scale=std)
+  return prob_left, 1 - prob_left - prob_right, prob_right
+```
+```{python}
+# * Select a Region of practical equivalence:
+ROPE = (-0.01, 0.01)
+
+prob_svm_better, prob_rope, prob_rf_better = get_t_dist_posterior_probs(
+  mean=mean, variance=variance, dof=dof, rope=ROPE
+)
+```
+
+```{python}
+#| echo: false 
+print(
+  f"Prob(svm > rf) = {round(prob_svm_better, 4)}, "
+  f"\nProb(rf ~ svm) = {round(prob_rope, 4)}, "
+  f"\nProb(svm < rf) = {round(prob_rf_better, 4)}"
+)
+```
+
+And what's nicer we can look at the distribution as the matching prior returns a t-distribution:
+
+```{python}
+#| echo: false
+import matplotlib.pyplot as plt
+from scipy import stats
+
+t_dist_params = (dof, mean, np.sqrt(variance))
+hdi = stats.t.ppf([0.03, 0.97], *t_dist_params)
+mean = stats.t.mean(*t_dist_params)
+y_mean = stats.t.pdf(mean, *t_dist_params)
+
+fig, ax = plt.subplots(figsize=(10, 6))
+ax.grid(True)
+x_legend = "Out-of-sample error difference, $\mu$"
+ax.set_xlabel(x_legend)
+ax.get_yaxis().set_ticklabels([])
+ax.axvline(x=ROPE[0], alpha=0.5, color="r", lw=2, label="ROPE")
+ax.axvline(x=ROPE[1], alpha=0.5, color="r", lw=2)
+ax.axvline(x=mean, alpha=0.5, color="black", lw=2)
+
+n_points = 300
+x_lim = 0.08
+x = np.linspace(-x_lim, x_lim, n_points)
+
+y = stats.t.pdf(x, *t_dist_params)
+ax.plot(x, y, alpha=0.65, c="b", lw=2, label="pdf")
+ax.fill_between(
+  x[x < ROPE[0]], 
+  y[x < ROPE[0]], 
+  np.zeros(n_points)[x < ROPE[0]], 
+  color="g", 
+  alpha=0.7, 
+  label="P(svm > rf)"
+)
+ax.fill_between(
+  x[(ROPE[0] <= x) & (x <= ROPE[1])], 
+  y[(ROPE[0] <= x) & (x <= ROPE[1])], 
+  np.zeros(n_points)[(ROPE[0] <= x) & (x <= ROPE[1])], 
+  color="purple", 
+  alpha=0.7, 
+  label="P(svm ~ rf)"
+)
+ax.fill_between(
+  x[x > ROPE[1]], 
+  y[x > ROPE[1]], 
+  np.zeros(n_points)[x > ROPE[1]], 
+  color="y", 
+  alpha=0.7, 
+  label="P(svm < rf)"
+)
+ax.set_title(
+  "Posterior distribution over the difference in error, RF - SVM. Negative means "
+  "SVM is better.",
+  fontdict={'fontsize': 10, 'fontweight': 'bold'},
+)
+ax.axvspan(*hdi, alpha=0.2, color='gray', label="94% HDI")
+ax.annotate(f" Mean = {round(mean, 3)}", xy=(mean, y_mean + 0.5))
+ax.annotate(f" P(svm > rf) = {round(prob_svm_better, 4)}", xy=(-x_lim, y_mean/2))
+ax.annotate(f" P(svm ~ rf) \n         = \n      {round(prob_rope, 4)}", xy=(ROPE[0], y_mean/2))
+ax.annotate(f" P(svm < rf) = {round(prob_rf_better, 4)}", xy=(mean + 0.75*(hdi[1]-mean), y_mean/2))
+
+ax.legend();
+```
+
+Since the posterior distribution informs us about the relative credibility values across the reals, from the posterior we get the uncertainty in the estimate.
+From this we can get a whole lot of useful information, for instance the Highest Density Intervals (HDIs), the mode, the mean, etc.
+Furthermore, equipped with the posterior distribution and the region of practical equivalence we can:
+
+1) estimate the posterior probability of a reasonable null hypothesis, i.e. if the difference in performance is within a couple of percentage points they may well be considered equivalent. 
+This will be given by the area within the rope region, above denoted by $P(M_1 \sim M_2)$.
+2) significant differences also have practical meaning (area outside the ROPE)
+3) represents effect size and uncertainty (HDI)
+4) we can make meaningful decision based on requiring that the probability of a model being better than another has to be at least 95%, say.
+
+## Cost sensitive decisions
+We will be dealing with this in more detail in a separate blog post. 
+In the real world, it is usually the case that we want to reason about situations and make decisions based on costs and errors. 
+Phrased differently, the choice of the cost measure should depend on how the system is going to be used, rather than on any inherent specification of the training process.
+The issue with doing this is that it is hard. 
+It is hard because specifying a cost-aware loss function is non-trivial, because cost-specifications are domain specific, and becuase even in the case of roughly knowing what the costs are, using this information is hard, i.e. the specified weigthed cost may be a difficult objective for optimisers to work with.
+However if we can specify costs then decision making based on these would be the best way to work as this allows one to take into consideration the utility of the decision that will be made.
+
+In our situation, in order to do cost-sensitive analysis/decision making, all we need is to specify a cost function -- we won't need to run an optimisation on this objective function. 
+This is a function that defines the loss (or cost) we incur in making a given decision (e.g. the wrong decision).
+A typical example is whether to give more importance to a false positive or a false negative.
+For our given situation and for the sake of exposition let's assume that the random forest model takes 4 times longer to train. 
+There are three decisions we can make 
+
+1) SVM is better than RF
+2) SVM is equivalent to RF
+3) SVM is worse than RF
+
+Consider the following cost-matrix:
+
++---------------+---------------+--------------------+--------------------+
+|               | SVM is better | are equivalent     | RF is better       |
++===============+===============+====================+====================+
+| Choose SVM    | 0             | -5                 | 2                  |
+|               |               |                    |                    |
++---------------+---------------+--------------------+--------------------+
+| Choose RF     | 7             | 5                  | 0                  |
+|               |               |                    |                    |
++---------------+---------------+--------------------+--------------------+
+
+where the $(i, j)$th entry is the cost incurred in making decision $i$ when $j$ is correct.
+Here we have a $2 \times 3$ matrix as we only consider the options of selecting the SVM or the RF, no abstention or anything else.
+
+In this case we have:
+
+* cost of choosing SVM is:
+  + 0 if SVM is better, 
+  + -5 if they are equivalent as we save compute time, 
+  + 2 if RF is better as we would lose performance
+
+* cost of choosing RF is:
+  + 7 if SVM is better because we pay for computational and performance cost, 
+  + 5 if they are equivalent as we add to the compute time, 
+  + 0 if RF is indeed better
+
+
+The **expected cost** can then be obtained by multiplying the cost_matrix with the posterior probabilities
+```{python}
+cost_matrix = np.array([
+  [0., -5., 2.],
+  [7., 5., 0.],
+])
+
+probabilities = np.array([prob_svm_better, prob_rope, prob_rf_better])
+
+expected_cost = cost_matrix.dot(probabilities)
+```
+```{python}
+#| echo: false
+print(f"\nCost of deciding on SVM:", round(expected_cost[0], 4))
+print(f"\nCost of deciding on RF:", round(expected_cost[1], 4))
+```
+
+The lowest cost would determine the optimal decision.
+We see that we would incur a significant cost in choosing the SVM over the RF. 
+Of course we could have made things even more extreme by having specified more aggressive costs.
+And further, we could have extended the possibilities, e.g. adding a row for "no decision made".
