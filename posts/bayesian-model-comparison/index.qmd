@@ -7,8 +7,7 @@ categories:
   - ML
   - Theory
   - Model evaluation
-  - Bayes
-  - Bayesian estimation
+  - Bayesian
   - Cross-validation
 bibliography: ../references.bib
 jupyter:
@@ -50,8 +49,7 @@ I think we agree that we would like something more robust and which, ideally, ta
 We ideally want to have a probability distribution which informs us, in some way, what the probability of one model being better than the other is. 
 That is, we want something like $P(M_1 > M_2 | D)$, where $M_1 > M_2$ denotes that model $M_1$ is better than model $M_2$ and $D$ is the data used for the comparison.
 In fact, we may want to do more than that. 
-Ideally, we would want a distribution specifying what the probability of one model being better than another is for each given performance difference. 
-That is, we would like a distribution over the true performance difference of the two algorithms.
+Ideally, we would like a distribution over the true performance difference of the two algorithms.
 What a great motive to enter the wonderful world of *Bayesian modelling*[^1]. 
 
 [^1]: See, e.g. @kruske2013best, for a nice, rapid tour of Bayesian modelling for group comparisons.
@@ -403,7 +401,7 @@ This will be given by the area within the rope region, above denoted by $P(M_1 \
 
 While we will be dealing with this in more detail in a separate blog post, let's have a first stab.
 
-In the real world, it is usually the case that we want to reason about situations and make decisions based on costs and errors. 
+In the real world, it is usually the case that we want to reason about situations and make decisions based on costs. 
 Phrased differently, the choice of the cost measure should depend on how the system is going to be used, rather than on any inherent specification of the training process.
 The issue with doing this is that it is hard. 
 It is hard because specifying a cost-aware loss function is non-trivial, because cost-specifications are domain specific, and becuase even in the case of roughly knowing what the costs are, using this information is hard, i.e. the specified weigthed cost may be a difficult objective for optimisers to work with.
