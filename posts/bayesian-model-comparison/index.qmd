@@ -1,6 +1,6 @@
 ---
 title: Bayesian comparison of cross-validated algorithms
-subtitle: 'Model selection via a Bayesian correlated t-test.'
+subtitle: Model selection via a Bayesian correlated t-test.
 date: 2022/11/18
 image: thumb.png
 categories:
@@ -16,9 +16,9 @@ jupyter:
       extension: .qmd
       format_name: quarto
       format_version: '1.0'
-      jupytext_version: 1.13.7
+      jupytext_version: 1.14.1
   kernelspec:
-    display_name: Python 3.6.15 ('fgm')
+    display_name: Python 3 (ipykernel)
     language: python
     name: python3
 ---
@@ -200,6 +200,7 @@ We use the *breast cancer* dataset from *sklearn*:
 data = load_breast_cancer()
 target = data["target"]
 ```
+
 ```{python}
 #| echo: false
 print(
@@ -208,13 +209,14 @@ print(
   f"num_neg = {len(np.where(target == 0)[0])}"
 )
 ```
+
 ```{python}
 target_names = ["malignant", "benign"]
 X_cancer, Y_cancer = data.data, data.target
 ```
 
-
 Now that we have the data let's run the repeated cross-validation for two models, here we use an SVM with linear kernel and a Random Forest classifier:
+
 ```{python}
 n_repetitions = 10
 n_folds = 5
@@ -250,6 +252,7 @@ We'll first need to compute the array of differences, $\delta$ and then we're in
 # * create array of differences; we do rf - svm
 delta = model_scores["rf"] - model_scores["svm"]
 ```
+
 ```{python}
 #| code-fold: true
 #| code-summary: code for `compute_statistics`
@@ -270,6 +273,7 @@ def compute_statistics(
   variance *= 1 / num_of_measurements + correlation / (1 - correlation)
   return mean.item(), variance.item(), num_of_measurements - 1
 ```
+
 ```{python}
 # * obtain the relevant statistics
 mean, variance, dof = compute_statistics(
@@ -282,6 +286,7 @@ This is a region where the difference in performance can be considered *practica
 Clearly the choice of ROPE is subjective and will depend on the *metric* and the *scale* we use to compare algorithms in addition to our understanding of equivalence in the given situation. See @kruske2013best and @benavoli2017timeforachange for more details.
 
 Here we will say that a difference of 1% in performance between the two models makes the performance practically equivalent.
+
 ```{python}
 #| code-fold: true
 #| code-summary: code for `get_t_dist_posterior_probs`
@@ -307,6 +312,7 @@ def get_t_dist_posterior_probs(
     prob_right = 1 - scipy.stats.t.cdf(rope[1], dof, loc=mean, scale=std)
   return prob_left, 1 - prob_left - prob_right, prob_right
 ```
+
 ```{python}
 # * Select a Region of practical equivalence:
 ROPE = (-0.01, 0.01)
@@ -317,7 +323,7 @@ prob_svm_better, prob_rope, prob_rf_better = get_t_dist_posterior_probs(
 ```
 
 ```{python}
-#| echo: false 
+#| echo: false
 print(
   f"Prob(svm > rf) = {round(prob_svm_better, 4)}, "
   f"\nProb(rf ~ svm) = {round(prob_rope, 4)}, "
@@ -391,11 +397,12 @@ Since the posterior distribution informs us about the relative credibility value
 From this we can get a whole lot of useful information, for instance the Highest Density Intervals (HDIs), the mode, the mean, etc.
 Furthermore, equipped with the posterior distribution and the region of practical equivalence we can:
 
-1) estimate the posterior probability of a reasonable null hypothesis, i.e. if the difference in performance is within a couple of percentage points they may well be considered equivalent. 
-This will be given by the area within the rope region, above denoted by $P(M_1 \sim M_2)$.
-2) significant differences also have practical meaning (area outside the ROPE)
-3) represents effect size and uncertainty (HDI)
-4) we can make meaningful decision based on requiring that the probability of a model being better than another has to be at least 95%, say.
+1) Estimate the posterior probability of a reasonable null hypothesis, i.e. if the difference in performance is within a couple of percentage points they may well be considered equivalent. 
+This will be given by the area within the rope region, above denoted by $P(M_1 \sim M_2 | D)$.
+2) Estimate the posterior probability that one model is better than the other, i.e. $P(M_{1} > M_{2} | D)$ and $P(M_{1} < M_{2} | D)$.
+These will be given by the areas on either side of the ROPE.
+3) Represent effect size and uncertainty.
+
 
 ## Cost sensitive decisions
 
@@ -445,7 +452,9 @@ In this case we have:
   + 0 if RF is indeed better
 
 
-The *expected cost* can then be obtained by multiplying the cost_matrix with the posterior probabilities
+The *expected cost* can then be obtained by multiplying the cost_matrix with the relevant posterior probabilities. 
+In this case, the relevant probabilities are $P(M_1 > M_2 | D)$, $P(M_1 \sim M_2 | D)$ and $P(M_1 < M_2 | D)$.
+
 ```{python}
 cost_matrix = np.array([
   [0., -5., 2.],
@@ -456,6 +465,7 @@ probabilities = np.array([prob_svm_better, prob_rope, prob_rf_better])
 
 expected_cost = cost_matrix.dot(probabilities)
 ```
+
 ```{python}
 #| echo: false
 print(f"\nCost of deciding on SVM:", round(expected_cost[0], 4))
