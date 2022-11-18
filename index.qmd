@@ -1,5 +1,5 @@
 ---
-title: "Notes and posts"
+title: ""
 listing:
   id: listings
   contents: posts
@@ -14,8 +14,6 @@ listing:
   filter-ui: false
   feed: true
 ---
-
-... on ML and more.
 
 ::: {#listings}
 :::
