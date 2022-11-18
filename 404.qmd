@@ -2,6 +2,6 @@
 title: Page Not Found
 ---
 
-The page you requested cannot be found. It was moved probably or renamed.
+The page you requested cannot be found. It was probably moved or renamed.
 
 You may want to try searching to find the page's new location.

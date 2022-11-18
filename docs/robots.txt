@@ -1,1 +1,1 @@
-Sitemap: https://bs-ds.github.io/blog/sitemap.xml
+Sitemap: https://ergodicedamame.github.io/blog/sitemap.xml

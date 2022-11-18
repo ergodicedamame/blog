@@ -2,20 +2,25 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.0.38">
+<meta name="generator" content="quarto-1.2.269">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="dcterms.date" content="2022-06-13">
 
-<title>BS DS - Generative vs.&nbsp;discriminative models</title>
+<title>Passing Thoughts - Generative vs.&nbsp;discriminative models</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
-span.underline{text-decoration: underline;}
-div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
 div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
 div.csl-bib-body { }
 div.csl-entry {
   clear: both;
@@ -85,26 +90,29 @@ div.csl-indent {
   <header id="quarto-header" class="headroom fixed-top">
     <nav class="navbar navbar-expand-lg navbar-dark ">
       <div class="navbar-container container-fluid">
-      <a class="navbar-brand" href="../../index.html">
-    <span class="navbar-title">BS DS</span>
-  </a>
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Passing Thoughts</span>
+    </a>
+  </div>
           <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
   <span class="navbar-toggler-icon"></span>
 </button>
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item">
-    <a class="nav-link" href="../../about.html">About</a>
+    <a class="nav-link" href="../../about.html">
+ <span class="menu-text">About</span></a>
   </li>  
   <li class="nav-item compact">
     <a class="nav-link" href="../../index.xml"><i class="bi bi-rss" role="img">
 </i> 
- </a>
+ <span class="menu-text"></span></a>
   </li>  
   <li class="nav-item compact">
-    <a class="nav-link" href="https://github.com/bs-ds/blog/"><i class="bi bi-github" role="img">
+    <a class="nav-link" href="https://github.com/ergodicedamame/blog/"><i class="bi bi-github" role="img">
 </i> 
- </a>
+ <span class="menu-text"></span></a>
   </li>  
 </ul>
               <div id="quarto-search" class="" title="Search"></div>
@@ -117,7 +125,7 @@ div.csl-indent {
 <!-- sidebar -->
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        <nav id="TOC" role="doc-toc">
+        <nav id="TOC" role="doc-toc" class="toc-active">
     <h2 id="toc-title">On this page</h2>
    
   <ul>
@@ -154,6 +162,7 @@ div.csl-indent {
       <p class="date">June 13, 2022</p>
     </div>
   </div>
+  
     
   </div>
   
@@ -161,7 +170,7 @@ div.csl-indent {
 </header>
 
 <p>Generative and discriminative models are known to have complementary strenghts. Following <span class="citation" data-cites="minka2005discriminative">Minka (<a href="#ref-minka2005discriminative" role="doc-biblioref">2005</a>)</span> and <span class="citation" data-cites="lasserre2006principled">Lasserre, Bishop, and Minka (<a href="#ref-lasserre2006principled" role="doc-biblioref">2006</a>)</span>, we will show how they can be seen to be at different ends of a spectrum, and then discuss some of their differences in detail.</p>
-<div class="page-columns page-full"><p>We will work through the definitions and differences by considering <em>probabilistic (graphical) models</em>, specifically using the <em>factor graph</em> representation<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>. Throughout, we will focus on <em>classification</em>, where we are given a labelled data set <span class="math inline">\(D = \lbrace \left( x^i, y^i \right) \rbrace_N\)</span> with inputs <span class="math inline">\(x^i = \left( x^i_1, \cdots, x^i_n \right)\)</span> and labels <span class="math inline">\(y^i \in \lbrace 0, 1 \rbrace\)</span>, and we want <span class="math inline">\(P \left( y = 1 \vert x = \hat x, D \right)\)</span> for some (new) <span class="math inline">\(\hat x\)</span><a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a>. The definitions and the generative-discriminative dichotomy are however more general, i.e.&nbsp;they are not restricted to the problem of classification.</p><div class="no-row-height column-margin column-container"><li id="fn1" role="doc-endnote"><p><sup>1</sup>&nbsp;Factor graphs are a more detailed representation of a probabilistic graphical model that specifies the factorization of the joint probability being modelled. See e.g. <span class="citation" data-cites="loeliger2004introduction">Loeliger (<a href="#ref-loeliger2004introduction" role="doc-biblioref">2004</a>)</span>.</p></li><li id="fn2" role="doc-endnote"><p><sup>2</sup>&nbsp;Note that actually determining which class to assign to <span class="math inline">\(\hat x\)</span> requires a final decision. We will ignore this as well as <em>discriminant functions</em>, which combine the inference and the decision steps. See <span class="citation" data-cites="bishop2006pattern">(<a href="#ref-bishop2006pattern" role="doc-biblioref">Bishop 2006, sec. 1.5.4</a>)</span> for a discussion.</p></li></div></div>
+<div class="page-columns page-full"><p>We will work through the definitions and differences by considering <em>probabilistic (graphical) models</em>, specifically using the <em>factor graph</em> representation<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>. Throughout, we will focus on <em>classification</em>, where we are given a labelled data set <span class="math inline">\(D = \lbrace \left( x^i, y^i \right) \rbrace_N\)</span> with inputs <span class="math inline">\(x^i = \left( x^i_1, \cdots, x^i_n \right)\)</span> and labels <span class="math inline">\(y^i \in \lbrace 0, 1 \rbrace\)</span>, and we want <span class="math inline">\(P \left( y = 1 \vert x = \hat x, D \right)\)</span> for some (new) <span class="math inline">\(\hat x\)</span><a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a>. The definitions and the generative-discriminative dichotomy are however more general, i.e.&nbsp;they are not restricted to the problem of classification.</p><div class="no-row-height column-margin column-container"><li id="fn1"><p><sup>1</sup>&nbsp;Factor graphs are a more detailed representation of a probabilistic graphical model that specifies the factorization of the joint probability being modelled. See e.g. <span class="citation" data-cites="loeliger2004introduction">Loeliger (<a href="#ref-loeliger2004introduction" role="doc-biblioref">2004</a>)</span>.</p></li><li id="fn2"><p><sup>2</sup>&nbsp;Note that actually determining which class to assign to <span class="math inline">\(\hat x\)</span> requires a final decision. We will ignore this as well as <em>discriminant functions</em>, which combine the inference and the decision steps. See <span class="citation" data-cites="bishop2006pattern">(<a href="#ref-bishop2006pattern" role="doc-biblioref">Bishop 2006, sec. 1.5.4</a>)</span> for a discussion.</p></li></div></div>
 <section id="generative-models-can-be-used-to-generate-synthetic-data" class="level2">
 <h2 class="anchored" data-anchor-id="generative-models-can-be-used-to-generate-synthetic-data">Generative models can be used to generate synthetic data</h2>
 <p>A <em>discriminative model</em> is one that provides <span class="math inline">\(P \left( y \vert x \right)\)</span> directly. The name comes from the fact that we can view the distribution (together with the decision to choose the most probable value) as directly discriminating the value of the target <span class="math inline">\(y\)</span> for any given instance <span class="math inline">\(x\)</span>.</p>
@@ -404,7 +413,7 @@ P \left(x \vert y \right) = \prod_i P \left( x_i \vert y \right).
 </table>
 <p>and the conditional probability constraints bring the number of parameters per input variable from four to two. Thus, overall we have <span class="math inline">\(2 n\)</span> parameters to estimate. This is now less than the <span class="math inline">\(2^n\)</span> of the discriminative model (provided <span class="math inline">\(n &gt; 2\)</span>).</p>
 <p>On top of the number of parameters that need to be estimated, in order to reliably estimate them, we need to observe each distinct instance multiple times. This is discussed in <span class="citation" data-cites="mitchell2020generative">(<a href="#ref-mitchell2020generative" role="doc-biblioref">Mitchell 2020</a>)</span>.</p>
-<div class="page-columns page-full"><p>We thus can, and often do, introduce futher bias in generative models in order to make them tractable. A consequence of this is that generative models can be less accurate, if they (i.e.&nbsp;the small world model) don’t reflect the large world model<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>, but (when they do) generative models require less data to train.</p><div class="no-row-height column-margin column-container"><li id="fn3" role="doc-endnote"><p><sup>3</sup>&nbsp;This is Savage’s <a href="https://errorstatistics.files.wordpress.com/2021/03/savage-forum-combined-searchable_red.pdf">terminology</a>, as presented by McElreath in Statistical Rethinking: <em>“All statisitcal modelling has these two frames: the small world of the model itself and the large world we hope to deploy the model in.”</em> <span class="citation" data-cites="mcelreath2020statistical">(<a href="#ref-mcelreath2020statistical" role="doc-biblioref">McElreath 2020, 19</a>)</span>.</p></li></div></div>
+<div class="page-columns page-full"><p>We thus can, and often do, introduce futher bias in generative models in order to make them tractable. A consequence of this is that generative models can be less accurate, if they (i.e.&nbsp;the small world model) don’t reflect the large world model<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>, but (when they do) generative models require less data to train.</p><div class="no-row-height column-margin column-container"><li id="fn3"><p><sup>3</sup>&nbsp;This is Savage’s <a href="https://errorstatistics.files.wordpress.com/2021/03/savage-forum-combined-searchable_red.pdf">terminology</a>, as presented by McElreath in Statistical Rethinking: <em>“All statisitcal modelling has these two frames: the small world of the model itself and the large world we hope to deploy the model in.”</em> <span class="citation" data-cites="mcelreath2020statistical">(<a href="#ref-mcelreath2020statistical" role="doc-biblioref">McElreath 2020, 19</a>)</span>.</p></li></div></div>
 </section>
 <section id="generative-models-can-deal-with-missing-data" class="level2">
 <h2 class="anchored" data-anchor-id="generative-models-can-deal-with-missing-data">Generative models can deal with missing data</h2>
@@ -518,7 +527,24 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     button.classList.add('code-copy-button-checked');
     var currentTitle = button.getAttribute("title");
     button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
     setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
       button.setAttribute("title", currentTitle);
       button.classList.remove('code-copy-button-checked');
     }, 1000);
@@ -546,35 +572,54 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   for (var i=0; i<noterefs.length; i++) {
     const ref = noterefs[i];
     tippyHover(ref, function() {
-      let href = ref.getAttribute('href');
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
       try { href = new URL(href).hash; } catch {}
       const id = href.replace(/^#\/?/, "");
       const note = window.document.getElementById(id);
       return note.innerHTML;
     });
   }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
   var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
   for (var i=0; i<bibliorefs.length; i++) {
     const ref = bibliorefs[i];
-    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
-    tippyHover(ref, function() {
-      var popup = window.document.createElement('div');
-      cites.forEach(function(cite) {
-        var citeDiv = window.document.createElement('div');
-        citeDiv.classList.add('hanging-indent');
-        citeDiv.classList.add('csl-entry');
-        var biblioDiv = window.document.getElementById('ref-' + cite);
-        if (biblioDiv) {
-          citeDiv.innerHTML = biblioDiv.innerHTML;
-        }
-        popup.appendChild(citeDiv);
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
       });
-      return popup.innerHTML;
-    });
+    }
   }
 });
 </script>
-<script src="https://giscus.app/client.js" data-repo="bs-ds/blog" data-repo-id="R_kgDOG9LH-w" data-category="Comments" data-category-id="DIC_kwDOG9LH-84CN-s8" data-mapping="title" data-reactions-enabled="0" data-emit-metadata="0" data-input-position="top" data-theme="light" data-lang="en" crossorigin="anonymous" async="">
+<script src="https://giscus.app/client.js" data-repo="ergodicedamame/blog" data-repo-id="R_kgDOG9LH-w" data-category="Comments" data-category-id="DIC_kwDOG9LH-84CN-s8" data-mapping="title" data-reactions-enabled="0" data-emit-metadata="0" data-input-position="top" data-theme="light" data-lang="en" crossorigin="anonymous" async="">
 </script>
 </div> <!-- /content -->
 
