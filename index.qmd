@@ -15,7 +15,7 @@ listing:
   feed: true
 ---
 
-... by Gregorio B and Dayal S on DS, and other.
+... on ML and more.
 
 ::: {#listings}
 :::

@@ -3,19 +3,19 @@ project:
   output-dir: docs
 
 website:
-  title: BS DS
-  description: "Notes and posts by Gregorio B and Dayal S on DS, and other."
-  site-url: https://bs-ds.github.io/blog/
+  title: Passing Thoughts
+  description: "Notes and on ML and more."
+  site-url: https://ergodicedamame.github.io/blog/
   navbar:
     right:
       - about.qmd
       - icon: rss
         href: index.xml
       - icon: github
-        href: https://github.com/bs-ds/blog/
+        href: https://github.com/ergodicedamame/blog/
   # page-footer:
   #   right: 
-  #     - text: "Notes and posts by Gregorio B and Dayal S on DS, and other. CC-BY."
+  #     - text: "Notes and posts by Gregorio B and Dayal S on ML and other. CC-BY."
 format:
   html:
     theme: litera

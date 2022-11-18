@@ -17,7 +17,7 @@ bibliography: ../references.bib
 
 comments:
   giscus: 
-    repo: bs-ds/blog
+    repo: ergodicedamame/blog
     repo-id: R_kgDOG9LH-w
     category: Comments
     category-id: DIC_kwDOG9LH-84CN-s8
