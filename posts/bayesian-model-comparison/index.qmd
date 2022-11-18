@@ -184,40 +184,28 @@ where $\hat{\delta} = \frac{\Sigma_{i = 1}^{n} \delta_{i}}{n}$ and $\hat{\sigma}
 ```{python}
 import matplotlib.pyplot as plt
 import numpy as np
-import scipy
 from scipy import stats
-from sklearn.datasets import load_breast_cancer
+from sklearn.datasets import make_moons
 from sklearn.model_selection import RepeatedStratifiedKFold
-from sklearn.svm import SVC
+from sklearn.neural_network import MLPClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import f1_score
 ```
 
 To see this in action the first thing we need is some data and repeated cross-validation predictions for two different algorithms.
-We use the *breast cancer* dataset from *sklearn*:
+We use sklearn to make a *moons* dataset:
 
 ```{python}
-data = load_breast_cancer()
-target = data["target"]
+X, y = make_moons(n_samples=600, noise=0.4, random_state=23)
 ```
 
-```{python}
-#| echo: false
-print(
-  f"Number of instances in total = {len(target)}"
-  f"\nOf which num_pos = {len(np.where(target==1)[0])} and "
-  f"num_neg = {len(np.where(target == 0)[0])}"
-)
-```
+This has an equal number of labels of each class.
+
+Now that we have the data, let's run the repeated cross-validation for two models. Here we use a Random Forest and a neural network (MLPClassifier) classifier:
 
 ```{python}
-target_names = ["malignant", "benign"]
-X_cancer, Y_cancer = data.data, data.target
-```
+from time import time_ns
 
-Now that we have the data let's run the repeated cross-validation for two models, here we use an SVM with linear kernel and a Random Forest classifier:
-
-```{python}
 n_repetitions = 10
 n_folds = 5
 
@@ -225,32 +213,49 @@ RSKF = RepeatedStratifiedKFold(
   n_splits=n_folds, n_repeats=n_repetitions, random_state=23
 )
 
-models = {"svm": SVC, "rf": RandomForestClassifier}
+models = {
+  "model_1": RandomForestClassifier(),
+  "model_2": MLPClassifier(alpha=1, max_iter=1_000)
+}
 
 model_scores = {}
+model_times = {}
 
 for model_name, model in models.items():
+  times_fit = []
+  times_predict = []
   scores = []
-  for i, (train_indices, test_indices) in enumerate(RSKF.split(X_cancer, Y_cancer)):
-    x_train, x_test = X_cancer[train_indices], X_cancer[test_indices]
-    y_train, y_test = Y_cancer[train_indices], Y_cancer[test_indices]
+  for i, (train_indices, test_indices) in enumerate(RSKF.split(X, y)):
+    X_train, X_test = X[train_indices], X[test_indices]
+    y_train, y_test = y[train_indices], y[test_indices]
     
-    clf = model().fit(x_train, y_train)
-    y_pred = clf.predict(x_test)
+    time_0 = time_ns()
+    clf = model.fit(X_train, y_train)
+    time_fit = time_ns() - time_0
+
+    time_0 = time_ns()
+    y_pred = clf.predict(X_test)
+    time_predict = time_ns() - time_0
 
     f1 = f1_score(y_test, y_pred)
 
+    times_fit.append(time_fit)
+    times_predict.append(time_predict)
     scores.append(f1)
   
   model_scores[model_name] = np.asarray(scores)
+  model_times[model_name] = {
+    "fit": times_fit,
+    "predict": times_predict
+  }
 ```
 
 Now that we have the scores for each model let's perform the test. 
 We'll first need to compute the array of differences, $\delta$ and then we're in business.
 
 ```{python}
-# * create array of differences; we do rf - svm
-delta = model_scores["rf"] - model_scores["svm"]
+# * create array of differences; we do model_2 (MLP) - model_1 (RF)
+delta = model_scores["model_2"] - model_scores["model_1"]
 ```
 
 ```{python}
@@ -291,7 +296,7 @@ Here we will say that a difference of 1% in performance between the two models m
 #| code-fold: true
 #| code-summary: code for `get_t_dist_posterior_probs`
 def get_t_dist_posterior_probs(
-  mean, variance, dof, rope = (0.0, 0.0)
+  mean, variance, dof, rope=(0.0, 0.0), precision=4
 ):
   """Compute and return probability mass to the left of the given rope, 
   within the given rope and to the right of the given rope for a 
@@ -308,16 +313,17 @@ def get_t_dist_posterior_probs(
   # * Otherwise compute the probability for the specified t-distribution.
   else: 
     std = np.sqrt(variance)
-    prob_left = scipy.stats.t.cdf(rope[0], dof, loc=mean, scale=std)
-    prob_right = 1 - scipy.stats.t.cdf(rope[1], dof, loc=mean, scale=std)
-  return prob_left, 1 - prob_left - prob_right, prob_right
+    prob_left = round(stats.t.cdf(rope[0], dof, loc=mean, scale=std), precision)
+    prob_right = round(1 - stats.t.cdf(rope[1], dof, loc=mean, scale=std), precision)
+    prob_centre = round(1 - prob_left - prob_right, precision)
+  return prob_left, prob_centre, prob_right
 ```
 
 ```{python}
 # * Select a Region of practical equivalence:
 ROPE = (-0.01, 0.01)
 
-prob_svm_better, prob_rope, prob_rf_better = get_t_dist_posterior_probs(
+prob_1_better, prob_rope, prob_2_better = get_t_dist_posterior_probs(
   mean=mean, variance=variance, dof=dof, rope=ROPE
 )
 ```
@@ -325,13 +331,13 @@ prob_svm_better, prob_rope, prob_rf_better = get_t_dist_posterior_probs(
 ```{python}
 #| echo: false
 print(
-  f"Prob(svm > rf) = {round(prob_svm_better, 4)}, "
-  f"\nProb(rf ~ svm) = {round(prob_rope, 4)}, "
-  f"\nProb(svm < rf) = {round(prob_rf_better, 4)}"
+  f"Prob(1 > 2) = {prob_1_better}, "
+  f"\nProb(1 ~ 2) = {prob_rope}, "
+  f"\nProb(1 < 2) = {prob_2_better}"
 )
 ```
 
-And what's nicer we can look at the distribution as the matching prior returns a t-distribution:
+And what's nicer, we can look at the distribution as the matching prior returns a t-distribution:
 
 ```{python}
 #| echo: false
@@ -361,7 +367,7 @@ ax.fill_between(
   np.zeros(n_points)[x < ROPE[0]], 
   color="g", 
   alpha=0.7, 
-  label="P(svm > rf)"
+  label="P(1 > 2)"
 )
 ax.fill_between(
   x[(ROPE[0] <= x) & (x <= ROPE[1])], 
@@ -369,7 +375,7 @@ ax.fill_between(
   np.zeros(n_points)[(ROPE[0] <= x) & (x <= ROPE[1])], 
   color="purple", 
   alpha=0.7, 
-  label="P(svm ~ rf)"
+  label="P(1 ~ 2)"
 )
 ax.fill_between(
   x[x > ROPE[1]], 
@@ -377,18 +383,18 @@ ax.fill_between(
   np.zeros(n_points)[x > ROPE[1]], 
   color="y", 
   alpha=0.7, 
-  label="P(svm < rf)"
+  label="P(1 < 2)"
 )
 ax.set_title(
-  "Posterior distribution over the difference in error, RF - SVM. Negative means "
-  "SVM is better.",
+  "Posterior distribution over the difference in error, model 2 (MLP) - model 1 (RF). "
+  "Negative means RF is better.",
   fontdict={'fontsize': 10, 'fontweight': 'bold'},
 )
 ax.axvspan(*hdi, alpha=0.2, color='gray', label="94% HDI")
 ax.annotate(f" Mean = {round(mean, 3)}", xy=(mean, y_mean + 0.5))
-ax.annotate(f" P(svm > rf) = {round(prob_svm_better, 4)}", xy=(-x_lim, y_mean/2))
-ax.annotate(f" P(svm ~ rf) \n         = \n      {round(prob_rope, 4)}", xy=(ROPE[0], y_mean/2))
-ax.annotate(f" P(svm < rf) = {round(prob_rf_better, 4)}", xy=(mean + 0.75*(hdi[1]-mean), y_mean/2))
+ax.annotate(f" P(1 > 2) = {round(prob_1_better, 4)}", xy=(-x_lim, y_mean/2))
+ax.annotate(f" P(1 ~ 2) \n         = \n      {round(prob_rope, 4)}", xy=(ROPE[0], y_mean/2))
+ax.annotate(f" P(1 < 2) = {round(prob_2_better, 4)}", xy=(mean + 0.75*(hdi[1]-mean), y_mean/2))
 
 ax.legend();
 ```
@@ -417,40 +423,56 @@ However if we can specify costs then decision making based on these would be the
 In our situation, in order to do cost-sensitive analysis/decision making, all we need is to specify a cost function -- we won't need to run an optimisation on this objective function. 
 This is a function that defines the loss (or cost) we incur in making a given decision (e.g. the wrong decision).
 A typical example is whether to give more importance to a false positive or a false negative.
-For our given situation and for the sake of exposition, let's assume that the random forest model takes 4 times longer to train. 
+For our given situation and for the sake of exposition, let's assume that we are interested in the time taken to fit the model as we will need to do it often.
+(Also because in our example, the models actually take the same time to predict.)
+We find that
+
+```{python}
+#| echo: false
+model_1 = round(np.median(model_times["model_1"]["fit"]) / 10e9, 4)
+model_2 = round(np.median(model_times["model_2"]["fit"]) / 10e9, 4)
+
+print(
+  f"Median time to fit model 1 is {model_1} s, \n"
+  f"Median time to fit model 1 is {model_2} s, \n"
+  f"Ratio model 2 / model 1 is {round(model_2 / model_1, 2)}"
+)
+```
+
+
+That is model 2 is a lot slower to fit than model 1.
 There are three decisions we can make 
 
-1) SVM is better than RF
-2) SVM is equivalent to RF
-3) SVM is worse than RF
+1) model 1 is better than model 2
+2) model 1 is equivalent to model 2
+3) model 1 is worse than model 2
 
-Consider the following cost-matrix:
+We consider the following cost-matrix:
 
 +---------------+---------------+--------------------+--------------------+
-|               | SVM is better | are equivalent     | RF is better       |
+|               | 1 is better   | are equivalent     | 2 is better       |
 +===============+===============+====================+====================+
-| Choose SVM    | 0             | -5                 | 2                  |
+| Choose 1      | 0             | -5                 | 2                  |
 |               |               |                    |                    |
 +---------------+---------------+--------------------+--------------------+
-| Choose RF     | 7             | 5                  | 0                  |
+| Choose 1      | 7             | 5                  | 0                  |
 |               |               |                    |                    |
 +---------------+---------------+--------------------+--------------------+
 
 where the $(i, j)$th entry is the cost incurred by making decision $i$ when $j$ is correct.
-Here we have a $2 \times 3$ matrix as we only consider the options of selecting the SVM or the RF, no abstention, or anything else.
+Here we have a $2 \times 3$ matrix as we only consider the options of selecting either one model or the other, no abstention, or anything else.
 
 In this case we have:
 
-* cost of choosing SVM is:
-  + 0 if SVM is better, 
+* cost of choosing the Random Forest (model 1) is:
+  + 0 if it is better, 
   + -5 if they are equivalent as we save compute time, 
-  + 2 if RF is better as we would lose performance
+  + 2 if model 2 is better, as we would lose performance
 
-* cost of choosing RF is:
-  + 7 if SVM is better because we pay for computational and performance cost, 
+* cost of choosing the MLPClassifier (model 2) is:
+  + 7 if model 1 is better because we pay for computational and performance cost, 
   + 5 if they are equivalent as we add to the compute time, 
-  + 0 if RF is indeed better
-
+  + 0 if model 2 is indeed better
 
 The *expected cost* can then be obtained by multiplying the cost_matrix with the relevant posterior probabilities. 
 In this case, the relevant probabilities are $P(M_1 > M_2 | D)$, $P(M_1 \sim M_2 | D)$ and $P(M_1 < M_2 | D)$.
@@ -461,18 +483,18 @@ cost_matrix = np.array([
   [7., 5., 0.],
 ])
 
-probabilities = np.array([prob_svm_better, prob_rope, prob_rf_better])
+probabilities = np.array([prob_1_better, prob_rope, prob_2_better])
 
 expected_cost = cost_matrix.dot(probabilities)
 ```
 
 ```{python}
 #| echo: false
-print(f"\nCost of deciding on SVM:", round(expected_cost[0], 4))
-print(f"\nCost of deciding on RF:", round(expected_cost[1], 4))
+print(f"\nCost of deciding on model 1:", round(expected_cost[0], 4))
+print(f"\nCost of deciding on model 2:", round(expected_cost[1], 4))
 ```
 
 The lowest cost would determine the optimal decision.
-We see that we would incur a significant cost in choosing the SVM over the RF. 
+We see that we would incur a significant cost in choosing model 2 over model 1. 
 Of course, we could have made things even more extreme by specifying more aggressive costs.
 And further, we could have extended the possibilities, e.g. adding a row for "no decision made".
