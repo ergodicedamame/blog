@@ -1,7 +1,7 @@
 ---
 title: Bayesian comparison of cross-validated algorithms
 subtitle: Model selection via a Bayesian correlated t-test.
-date: 2022/11/18
+date: 2022/11/19
 image: thumb.png
 categories:
   - ML
@@ -190,9 +190,10 @@ from sklearn.model_selection import RepeatedStratifiedKFold
 from sklearn.neural_network import MLPClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import f1_score
+from time import perf_counter
 ```
 
-To see this in action the first thing we need is some data and repeated cross-validation predictions for two different algorithms.
+To see this in action, the first thing we need is some data and repeated cross-validation predictions for two different algorithms.
 We use sklearn to make a *moons* dataset:
 
 ```{python}
@@ -204,8 +205,6 @@ This has an equal number of labels of each class.
 Now that we have the data, let's run the repeated cross-validation for two models. Here we use a Random Forest and a neural network (MLPClassifier) classifier:
 
 ```{python}
-from time import time_ns
-
 n_repetitions = 10
 n_folds = 5
 
@@ -213,9 +212,11 @@ RSKF = RepeatedStratifiedKFold(
   n_splits=n_folds, n_repeats=n_repetitions, random_state=23
 )
 
+model_1 = "RF"
+model_2 = "MLP"
 models = {
-  "model_1": RandomForestClassifier(),
-  "model_2": MLPClassifier(alpha=1, max_iter=1_000)
+  model_1: RandomForestClassifier(),
+  model_2: MLPClassifier(alpha=1, max_iter=1_000)
 }
 
 model_scores = {}
@@ -229,13 +230,15 @@ for model_name, model in models.items():
     X_train, X_test = X[train_indices], X[test_indices]
     y_train, y_test = y[train_indices], y[test_indices]
     
-    time_0 = time_ns()
+    time_start = perf_counter()
     clf = model.fit(X_train, y_train)
-    time_fit = time_ns() - time_0
+    time_end = perf_counter()
+    time_fit = time_end - time_start
 
-    time_0 = time_ns()
+    time_start = perf_counter()
     y_pred = clf.predict(X_test)
-    time_predict = time_ns() - time_0
+    time_end = perf_counter()
+    time_predict = time_end - time_start
 
     f1 = f1_score(y_test, y_pred)
 
@@ -250,12 +253,12 @@ for model_name, model in models.items():
   }
 ```
 
-Now that we have the scores for each model let's perform the test. 
-We'll first need to compute the array of differences, $\delta$ and then we're in business.
+Now that we have the scores for each model, let's perform the test. 
+We'll first need to compute the array of differences, $\delta$, and then we're in business.
 
 ```{python}
 # * create array of differences; we do model_2 (MLP) - model_1 (RF)
-delta = model_scores["model_2"] - model_scores["model_1"]
+delta = model_scores[model_2] - model_scores[model_1]
 ```
 
 ```{python}
@@ -323,7 +326,7 @@ def get_t_dist_posterior_probs(
 # * Select a Region of practical equivalence:
 ROPE = (-0.01, 0.01)
 
-prob_1_better, prob_rope, prob_2_better = get_t_dist_posterior_probs(
+prob_model_1_better, prob_rope, prob_model_2_better = get_t_dist_posterior_probs(
   mean=mean, variance=variance, dof=dof, rope=ROPE
 )
 ```
@@ -331,13 +334,13 @@ prob_1_better, prob_rope, prob_2_better = get_t_dist_posterior_probs(
 ```{python}
 #| echo: false
 print(
-  f"Prob(1 > 2) = {prob_1_better}, "
-  f"\nProb(1 ~ 2) = {prob_rope}, "
-  f"\nProb(1 < 2) = {prob_2_better}"
+  f"P({model_1} > {model_2}) = {prob_model_1_better}, "
+  f"\nP({model_1} ~ {model_2}) = {prob_rope}, "
+  f"\nP({model_1} < {model_2}) = {prob_model_2_better}"
 )
 ```
 
-And what's nicer, we can look at the distribution as the matching prior returns a t-distribution:
+And what's nicer, we can look at the distribution as the matching prior returns a posterior that is a t-distribution:
 
 ```{python}
 #| echo: false
@@ -367,7 +370,7 @@ ax.fill_between(
   np.zeros(n_points)[x < ROPE[0]], 
   color="g", 
   alpha=0.7, 
-  label="P(1 > 2)"
+  label=f"P({model_1} > {model_2})"
 )
 ax.fill_between(
   x[(ROPE[0] <= x) & (x <= ROPE[1])], 
@@ -375,7 +378,7 @@ ax.fill_between(
   np.zeros(n_points)[(ROPE[0] <= x) & (x <= ROPE[1])], 
   color="purple", 
   alpha=0.7, 
-  label="P(1 ~ 2)"
+  label=f"P({model_1} ~ {model_2})"
 )
 ax.fill_between(
   x[x > ROPE[1]], 
@@ -383,18 +386,18 @@ ax.fill_between(
   np.zeros(n_points)[x > ROPE[1]], 
   color="y", 
   alpha=0.7, 
-  label="P(1 < 2)"
+  label=f"P({model_1} < {model_2})"
 )
 ax.set_title(
-  "Posterior distribution over the difference in error, model 2 (MLP) - model 1 (RF). "
-  "Negative means RF is better.",
+  f"Posterior distribution over the difference in error, {model_2} - {model_1}). "
+  f"Negative means {model_1} is better.",
   fontdict={'fontsize': 10, 'fontweight': 'bold'},
 )
 ax.axvspan(*hdi, alpha=0.2, color='gray', label="94% HDI")
 ax.annotate(f" Mean = {round(mean, 3)}", xy=(mean, y_mean + 0.5))
-ax.annotate(f" P(1 > 2) = {round(prob_1_better, 4)}", xy=(-x_lim, y_mean/2))
-ax.annotate(f" P(1 ~ 2) \n         = \n      {round(prob_rope, 4)}", xy=(ROPE[0], y_mean/2))
-ax.annotate(f" P(1 < 2) = {round(prob_2_better, 4)}", xy=(mean + 0.75*(hdi[1]-mean), y_mean/2))
+ax.annotate(f" P({model_1} > {model_2}) = {round(prob_model_1_better, 4)}", xy=(-x_lim, y_mean/2))
+ax.annotate(f" P({model_1} ~ {model_2}) \n         = \n      {round(prob_rope, 4)}", xy=(ROPE[0], y_mean/2))
+ax.annotate(f" P({model_1} < {model_2}) = {round(prob_model_2_better, 4)}", xy=(mean + 0.75*(hdi[1]-mean), y_mean/2))
 
 ax.legend();
 ```
@@ -404,8 +407,8 @@ From this we can get a whole lot of useful information, for instance the Highest
 Furthermore, equipped with the posterior distribution and the region of practical equivalence we can:
 
 1) Estimate the posterior probability of a reasonable null hypothesis, i.e. if the difference in performance is within a couple of percentage points they may well be considered equivalent. 
-This will be given by the area within the rope region, above denoted by $P(M_1 \sim M_2 | D)$.
-2) Estimate the posterior probability that one model is better than the other, i.e. $P(M_{1} > M_{2} | D)$ and $P(M_{1} < M_{2} | D)$.
+This will be given by the area within the rope region, above denoted by $P(RF \sim MLP | D)$.
+2) Estimate the posterior probability that one model is better than the other, i.e. $P(RF > MLP | D)$ and $P(RF < MLP | D)$.
 These will be given by the areas on either side of the ROPE.
 3) Represent effect size and uncertainty.
 
@@ -429,33 +432,33 @@ We find that
 
 ```{python}
 #| echo: false
-model_1 = round(np.median(model_times["model_1"]["fit"]) / 10e9, 4)
-model_2 = round(np.median(model_times["model_2"]["fit"]) / 10e9, 4)
+model_1_time = round(np.median(model_times[model_1]["fit"]), 4)
+model_2_time = round(np.median(model_times[model_2]["fit"]), 4)
 
 print(
-  f"Median time to fit model 1 is {model_1} s, \n"
-  f"Median time to fit model 1 is {model_2} s, \n"
-  f"Ratio model 2 / model 1 is {round(model_2 / model_1, 2)}"
+  f"Median time to fit {model_1} is {model_1_time} s, \n"
+  f"Median time to fit {model_2} is {model_2_time} s, \n"
+  f"Ratio {model_2} / {model_1} is {round(model_2_time / model_1_time, 2)}"
 )
 ```
 
 
-That is model 2 is a lot slower to fit than model 1.
+That is, MLP is a lot slower to fit than RF.
 There are three decisions we can make 
 
-1) model 1 is better than model 2
-2) model 1 is equivalent to model 2
-3) model 1 is worse than model 2
+1) RF is better than MLP
+2) RF is equivalent to MLP
+3) RF is worse than MLP
 
 We consider the following cost-matrix:
 
 +---------------+---------------+--------------------+--------------------+
-|               | 1 is better   | are equivalent     | 2 is better       |
+|               | RF is better  | are equivalent     | MLP is better      |
 +===============+===============+====================+====================+
-| Choose 1      | 0             | -5                 | 2                  |
+| Choose RF     | 0             | -5                 | 2                  |
 |               |               |                    |                    |
 +---------------+---------------+--------------------+--------------------+
-| Choose 1      | 7             | 5                  | 0                  |
+| Choose MLP    | 7             | 5                  | 0                  |
 |               |               |                    |                    |
 +---------------+---------------+--------------------+--------------------+
 
@@ -464,18 +467,18 @@ Here we have a $2 \times 3$ matrix as we only consider the options of selecting 
 
 In this case we have:
 
-* cost of choosing the Random Forest (model 1) is:
+* cost of choosing the Random Forest is:
   + 0 if it is better, 
   + -5 if they are equivalent as we save compute time, 
-  + 2 if model 2 is better, as we would lose performance
+  + 2 if MLP is better, as we would lose performance
 
-* cost of choosing the MLPClassifier (model 2) is:
-  + 7 if model 1 is better because we pay for computational and performance cost, 
+* cost of choosing the MLPClassifier is:
+  + 7 if RF is better because we pay for computational and performance cost, 
   + 5 if they are equivalent as we add to the compute time, 
-  + 0 if model 2 is indeed better
+  + 0 if MLP is indeed better
 
 The *expected cost* can then be obtained by multiplying the cost_matrix with the relevant posterior probabilities. 
-In this case, the relevant probabilities are $P(M_1 > M_2 | D)$, $P(M_1 \sim M_2 | D)$ and $P(M_1 < M_2 | D)$.
+In this case, the relevant probabilities are $P(RF > MLP | D)$, $P(RF \sim MLP | D)$ and $P(RF < MLP | D)$.
 
 ```{python}
 cost_matrix = np.array([
@@ -483,18 +486,18 @@ cost_matrix = np.array([
   [7., 5., 0.],
 ])
 
-probabilities = np.array([prob_1_better, prob_rope, prob_2_better])
+probabilities = np.array([prob_model_1_better, prob_rope, prob_model_2_better])
 
 expected_cost = cost_matrix.dot(probabilities)
 ```
 
 ```{python}
 #| echo: false
-print(f"\nCost of deciding on model 1:", round(expected_cost[0], 4))
-print(f"\nCost of deciding on model 2:", round(expected_cost[1], 4))
+print(f"\nCost of deciding on {model_1}:", round(expected_cost[0], 4))
+print(f"\nCost of deciding on {model_2}:", round(expected_cost[1], 4))
 ```
 
 The lowest cost would determine the optimal decision.
-We see that we would incur a significant cost in choosing model 2 over model 1. 
+We see that we would incur a significant cost in choosing MLP over RF. 
 Of course, we could have made things even more extreme by specifying more aggressive costs.
 And further, we could have extended the possibilities, e.g. adding a row for "no decision made".
