@@ -268,7 +268,7 @@ def compute_statistics(
   perf_differences, n_repetitions,
   ):
   """
-  Given the m*k length array holdind the scores for the m-repetitions of k-fols, will compute 
+  Given the m*k length array holding the scores for the m-repetitions of k-folds, will compute 
   the following statistics: the mean, the Nadeau-Bengio corrected 
   variance and the number of degrees of freedom for the t-distribution.
   """
