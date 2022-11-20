@@ -324,6 +324,7 @@ def get_posteriors_from_t_distribution(
   if np.isclose(variance, 0.0):
     prob_left = float(mean < rope[0])
     prob_right = float(mean > rope[1])
+    prob_centre = 0.0
   # * Otherwise compute the probability for the specified t-distribution.
   else: 
     std = np.sqrt(variance)
