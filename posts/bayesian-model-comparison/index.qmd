@@ -512,7 +512,7 @@ print(f"\nCost of deciding on {model_1}:", round(expected_cost[0], 4))
 print(f"\nCost of deciding on {model_2}:", round(expected_cost[1], 4))
 ```
 
-The lowest cost would determine the optimal decision.
+The lowest expected cost would determine the optimal decision.
 We see that we would incur a significant cost in choosing MLP over RF. 
 Of course, we could have made things even more extreme by specifying more aggressive costs.
 And further, we could have extended the possibilities, e.g. adding a row for "no decision made".
