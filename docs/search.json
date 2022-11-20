@@ -114,9 +114,9 @@
   {
     "objectID": "index.html",
     "href": "index.html",
-    "title": "Notes and posts",
+    "title": "Passing Thoughts",
     "section": "",
-    "text": "… on ML and more.\n\n\n\n\n  \n\n\n\n\nGenerative vs. discriminative models\n\n\nThinking through the differences between generative and discriminative models.\n\n\n\n\nML\n\n\ntheory\n\n\nfactor graphs\n\n\nPGMs\n\n\n \n\n\n\n\n13-06-2022\n\n\n\n\n\n\n  \n\n\n\n\nHeatmaps done right\n\n\nA note on clustering distance matrices before plotting. Think sns.clustermap using altair.\n\n\n\n\nvisualisation\n\n\nhow-to\n\n\n \n\n\n\n\n19-03-2022\n\n\n\n\n\n\n  \n\n\n\n\nSetting up a blog using quarto\n\n\nNotes on how the site was set up. And how to blog using quarto.\n\n\n\n\nhow-to\n\n\n \n\n\n\n\n06-03-2022\n\n\n\n\n\n\nNo matching items"
+    "text": "Generative vs. discriminative models\n\n\nThinking through the differences between generative and discriminative models.\n\n\n\n\nML\n\n\ntheory\n\n\nfactor graphs\n\n\nPGMs\n\n\n \n\n\n\n\n13-06-2022\n\n\n\n\n\n\n  \n\n\n\n\nHeatmaps done right\n\n\nA note on clustering distance matrices before plotting. Think sns.clustermap using altair.\n\n\n\n\nvisualisation\n\n\nhow-to\n\n\n \n\n\n\n\n19-03-2022\n\n\n\n\n\n\n  \n\n\n\n\nSetting up a blog using quarto\n\n\nNotes on how the site was set up. And how to blog using quarto.\n\n\n\n\nhow-to\n\n\n \n\n\n\n\n06-03-2022\n\n\n\n\n\n\nNo matching items"
   },
   {
     "objectID": "about.html",
