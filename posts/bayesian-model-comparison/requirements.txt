@@ -1,0 +1,4 @@
+matlotlib
+numpy
+scipy
+sklearn
