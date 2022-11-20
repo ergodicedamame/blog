@@ -10,7 +10,364 @@
 <atom:link href="https://ergodicedamame.github.io/blog/index.xml" rel="self" type="application/rss+xml"/>
 <description>Notes and on ML and more.</description>
 <generator>quarto-1.2.269</generator>
-<lastBuildDate>Mon, 13 Jun 2022 00:00:00 GMT</lastBuildDate>
+<lastBuildDate>Sat, 19 Nov 2022 00:00:00 GMT</lastBuildDate>
+<item>
+  <title>Bayesian comparison of cross-validated algorithms</title>
+  <link>https://ergodicedamame.github.io/blog/posts/bayesian-model-comparison/index.html</link>
+  <description><![CDATA[ 
+
+
+
+<p>Robust model evaluation should be second nature for those of us that work with data and predictive models. When determining whether one model is better than another, there are many techniques that one can use. Very common ones include <em>bootstrapping</em> and <em>cross-validation</em>.</p>
+<p>First and foremost however, one must make a decision as to what “better” means. Better in what way? More accurate? Faster? More (budget) efficient? We will revisit this later. For now, let’s assume that better means “obtains a higher F1 score”. F1 is just an example, and we could consider any other score. Once we have decided to say that the model with the highest F1 score is better, the more serious question arises: how do we know whether a model is indeed better? Can we just take an average score across a test set and compare the numbers, i.e.&nbsp;plain-old pointwise comparison? I think we agree that we would like something more robust and which, ideally, takes uncertainty into account.</p>
+<div class="page-columns page-full"><p>We ideally want to have a probability distribution which informs us, in some way, what the probability of one model being better than the other is. That is, we want something like <img src="https://latex.codecogs.com/png.latex?P(M_1%20%3E%20M_2%20%7C%20D)">, where <img src="https://latex.codecogs.com/png.latex?M_1%20%3E%20M_2"> denotes that model <img src="https://latex.codecogs.com/png.latex?M_1"> is better than model <img src="https://latex.codecogs.com/png.latex?M_2"> and <img src="https://latex.codecogs.com/png.latex?D"> is the data used for the comparison. In fact, we may want to do more than that. Ideally, we would like a distribution over the true performance difference of the two algorithms. What a great motive to enter the wonderful world of <em>Bayesian modelling</em><sup>1</sup>.</p><div class="no-row-height column-margin column-container"><li id="fn1"><p><sup>1</sup>&nbsp;See, e.g. <span class="citation" data-cites="kruske2013best">Kruske (2013)</span>, for a nice, rapid tour of Bayesian modelling for group comparisons.</p></li></div></div>
+<section id="problem-statement" class="level2">
+<h2 class="anchored" data-anchor-id="problem-statement">Problem statement</h2>
+<p>Assume that we are interested in comparing the performance (e.g.&nbsp;accuracy, recall, precision, <img src="https://latex.codecogs.com/png.latex?%5Ctext%7BF%7D_%7B%5Cbeta%7D">, etc.) of two predictors. If using cross-validation, <span class="citation" data-cites="bouckaert2003choosing">Bouckaert (2003)</span> recommends making this more robust (i.e.&nbsp;returning more stable statistics) by using <em>repeated cross-validation</em>; that is performing evaluation via <img src="https://latex.codecogs.com/png.latex?m"> repetitions of <img src="https://latex.codecogs.com/png.latex?k">-fold cross-validation. Both classifiers will be trained on the same data and tested on the same data and we can therefore collect the <em>differences of their performances</em></p>
+<p><img src="https://latex.codecogs.com/png.latex?%0A%5Cdelta%20=%20%5C%7B%5Cdelta_%7B1%7D,%20%5Cdelta_%7B2%7D,.%20.%20.,%20%5Cdelta_%7Bn%7D%5C%7D%0A"></p>
+<p>where <img src="https://latex.codecogs.com/png.latex?n=mk">. Denote the sample mean and sample variance of the differences as <img src="https://latex.codecogs.com/png.latex?%5Chat%7B%5Cdelta%7D"> and <img src="https://latex.codecogs.com/png.latex?%5Chat%7B%5Csigma%7D%5E%7B2%7D">.</p>
+<p>What can we say about these samples? Well, one thing is that these samples are almost certainly <em>noisy</em> observations of an underlying true difference of performance between the two algorithms. That is, there exist a hidden performance difference which we don’t know but that manifest itself, with noise, through these samples. For instance, if we assume that the <img src="https://latex.codecogs.com/png.latex?%5Cdelta_%7Bi%7D"> s are i.i.d. then we could say that the <img src="https://latex.codecogs.com/png.latex?%5Cdelta_%7Bi%7D"> are samples from a distribution with a true underlying mean, which would be the mean of interest to us. We could then further assign a prior distribution to that true mean (and any other parameters in the specification of the sampling distribution) and, after observing some samples, perform inference to construct the posterior distribution over the true mean, given the observed data. This is the standard paradigm of Bayesian modelling.</p>
+<p>There are infinite ways to model such a process but we can follow the aphorism, gifted to us by <a href="https://en.wikipedia.org/wiki/All_models_are_wrong_">George Box</a>, that none of them will be correct, but some of them may be useful. In particular, the assumtions that we bake into the model will make the model more or less useful. Oversimplifying assumptions would lead us to a model that is not able to describe the underlying process. Complex interactions would lead to a model that is intractable. Of course these days, with powerful probabilist programming languages, it is much easier to build a complex model and have a black-box inference algorithm that will give us results. This, however, isn’t a free meal. Complex models, especially hierachical ones, lead to complex inference processes that require expertise to diagnose. Moreover, the choce of priors will also become a delicate issue.</p>
+<p>In general, we need to balance two things:</p>
+<ol type="1">
+<li>the modelling assumptions,</li>
+<li>the techniques to perform inference, i.e.&nbsp;the computational techniques.</li>
+</ol>
+<p>In the case that we are considering here, i.e.&nbsp;comparing models across cross-validation scores, one important modelling aspect is that the scores are not independent: in fact the resulting models will have an overlapping training set and an overlapping testing set.</p>
+<p>In this post, we will be presenting a model that was developed in <span class="citation" data-cites="corani2015bayesian">Corani and Benavoli (2015)</span>. This is a relatively simple model which uses the properties of exponential families and conjugacy to simplify inference. Note that this is just <em>one</em> possible model of the process, and it is by no means the best model!</p>
+</section>
+<section id="corani-and-benavolis-bayesian-correlated-t-test" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="corani-and-benavolis-bayesian-correlated-t-test">Corani and Benavoli’s Bayesian correlated t-test</h2>
+<p>The model proposed by <span class="citation" data-cites="corani2015bayesian">Corani and Benavoli (2015)</span> is as follows. Assume that the observations <img src="https://latex.codecogs.com/png.latex?%5Cdelta_i">, are <strong>identically distributed but <em>dependent</em></strong>. Specifically, let the observations have the same mean, <img src="https://latex.codecogs.com/png.latex?%5Cmu">, the same precision, <img src="https://latex.codecogs.com/png.latex?%5Cnu,"> and be equally correlated with each other with correlation <img src="https://latex.codecogs.com/png.latex?%5Crho%20%3E%200">. This is the case when the <img src="https://latex.codecogs.com/png.latex?n"> observations are the <img src="https://latex.codecogs.com/png.latex?n"> differences of performance between two predictors yielded by cross-validation. The data generation process is then modelled as:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0A%5Cdelta%20=%20I_%7Bn%20%5Ctimes%201%7D%5Cmu%20+%20v%0A"></p>
+<p>where <img src="https://latex.codecogs.com/png.latex?v"> is a noise vector with zero mean and covariance matrix <img src="https://latex.codecogs.com/png.latex?%5CSigma_%7Bn%20%5Ctimes%20n%7D"> with the following structure: each diagonal element equals <img src="https://latex.codecogs.com/png.latex?%5Csigma%5E%7B2%7D%20=%201/%5Cnu">; non-diagonal elements equal <img src="https://latex.codecogs.com/png.latex?%5Crho%20%5Csigma%5E%7B2%7D">. This is knows as the <em>interclass covariance matrix</em>.</p>
+<p>Define <img src="https://latex.codecogs.com/png.latex?%5CSigma%20=%20%5Csigma%5E%7B2%7D%20M"> with <img src="https://latex.codecogs.com/png.latex?M"> an <img src="https://latex.codecogs.com/png.latex?(n%20%5Ctimes%20n)"> correlation matrix, e.g.&nbsp;in <img src="https://latex.codecogs.com/png.latex?3d"></p>
+<p><img src="https://latex.codecogs.com/png.latex?%0AM%20=%0A%20%20%5Cleft%5B%20%7B%5Cbegin%7Barray%7D%7Bcc%7D%0A%20%20%20%201%20&amp;%20%5Crho%20&amp;%20%5Crho%20%5C%5C%0A%20%20%20%20%5Crho%20&amp;%201%20&amp;%20%5Crho%5C%5C%0A%20%20%20%20%5Crho%20&amp;%20%5Crho%20&amp;%201%5C%5C%0A%20%20%5Cend%7Barray%7D%20%7D%20%5Cright%5D%0A"></p>
+<p><span class="citation" data-cites="nadeaubengio2003">Nadeau and Bengio (2003)</span> show that the correlation between the cross-validation results is positive and therefore, since <img src="https://latex.codecogs.com/png.latex?%5Csigma%5E%7B2%7D%20%3E%200">, <img src="https://latex.codecogs.com/png.latex?%5CSigma"> is invertible and positive definite.</p>
+<p>With this we have the basic ingredient indicating how we want to model the interactions between the samples, however we still need to define a generative process; a prior over <img src="https://latex.codecogs.com/png.latex?%5Cmu"> (the quantity of interest) and a likelihood (i.e.&nbsp;a sampling distribution). For the sampling distribution of correlated observations assume the noise vector, <img src="https://latex.codecogs.com/png.latex?v">, to be distributed as a multivariate Normal distribution:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0AP(%5Cdelta%7C%20%5Cmu,%20%5CSigma)%20=%20%5Cfrac%7B%0A%20%20%5Cexp(-%5Cfrac%7B1%7D%7B2%7D(%5Cdelta%20-%20I%5Cmu)%5E%7BT%7D%5CSigma%5E%7B-1%7D(%5Cdelta%20-%20I%5Cmu))%7D%0A%20%20%7B(2%5Cpi)%5E%7Bn/2%7D%5Csqrt%7B%7C%5CSigma%7C%7D%7D%0A"></p>
+<p>We ultimately want a distribution over <img src="https://latex.codecogs.com/png.latex?%5Cmu">. We could go about this by defining priors over the three parameters, <img src="https://latex.codecogs.com/png.latex?%5Cmu">, <img src="https://latex.codecogs.com/png.latex?%5Csigma%5E%7B2%7D"> and <img src="https://latex.codecogs.com/png.latex?%5Crho">, and inferring the posterior over these. The approach taken by the authors here is simpler and, importantly, allows us to get the posterior in closed form. This is achieved by avoiding the need to estimate <img src="https://latex.codecogs.com/png.latex?%5Crho"> through use of the Nadeau-Bengio heuristic estimate for the correlation.</p>
+<p>Specifically Nadeau and Bengio propose to take <img src="https://latex.codecogs.com/png.latex?%5Crho%20=%20%5Cfrac%7Bn_%7B%5Ctext%7Btest%7D%7D%7D%7Bn_%7B%5Ctext%7Btotal%7D%7D%7D">, where <img src="https://latex.codecogs.com/png.latex?n_%7B%5Ctext%7Btest%7D%7D"> is the size of the test set and <img src="https://latex.codecogs.com/png.latex?n_%7B%5Ctext%7Btotal%7D%7D%20=%20n_%7B%5Ctext%7Btest%7D%7D%20+%20n_%7B%5Ctext%7Btrain%7D%7D">, i.e.&nbsp;the total dataset size.</p>
+<div class="callout-note callout callout-style-default callout-captioned">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-caption-container flex-fill">
+The idea behind the choice of correlation
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>See <span class="citation" data-cites="nadeaubengio2003">Nadeau and Bengio (2003)</span> sections 3 and 5 for details. The main points and heuristics behind this choice for the correlation factor are:</p>
+<ul>
+<li><p>The real <img src="https://latex.codecogs.com/png.latex?%5Crho"> is unknown, in fact usually this is just set to <img src="https://latex.codecogs.com/png.latex?0"> meaning that correlation is not accounted for. This can lead to underestimates of the estimated variance. In the paper the authors propose <img src="https://latex.codecogs.com/png.latex?%5Crho=%5Cfrac%7Bn_%7B%5Ctext%7Btest%7D%7D%7D%7Bn_%7B%5Ctext%7Btotal%7D%7D%7D">. Note that this choice, as stated by the authors, is a gross approximation. Yet it is better than pretending that <img src="https://latex.codecogs.com/png.latex?%5Crho=0">.</p></li>
+<li><p>The choice is made with an important assumption – that the specific training instances don’t matter, just the training set size. This is a very strong assumption and one that isn’t generically justified.</p></li>
+<li><p>This correction is good for stable algorithms (<em>c.f.</em> the point above), i.e.&nbsp;ones that are not too sensitive to perturbation of the training set. Or for algorithms with low capacity compared to training set size.</p></li>
+<li><p>The idea is that the correlation should reduce as more training data is used. More training data should stabilise the algorithm. That is, as the data size increases the model should approach saturation and, therefore, as we keep adding data the resulting decision function shouldn’t change too much.</p></li>
+</ul>
+</div>
+</div>
+</div>
+<p>Okay, so now we’re in business! With <img src="https://latex.codecogs.com/png.latex?%5Crho"> fixed we can infer the posterior over <img src="https://latex.codecogs.com/png.latex?%5Cmu">.</p>
+<p>Choose the joint prior for the mean and precision parameters of the Normal distribution to be</p>
+<p><img src="https://latex.codecogs.com/png.latex?P(%5Cmu,%20%5Cnu%20%7C%20%5Cmu_%7B0%7D,%20k_%7B0%7D,%20a,%20b)%20=%20NG(%5Cmu,%20%5Cnu;%20%5Cmu_%7B0%7D,%20k_%7B0%7D,%20a,%20b)%0A"></p>
+<p>where <img src="https://latex.codecogs.com/png.latex?NG"> is the standard Normal-Gamma. This is a <a href="https://en.wikipedia.org/wiki/Normal-gamma_distribution"><em>conjugate prior</em></a>, to the normal, which makes modelling easier.</p>
+<p>Because of the conjugacy, the posterior over <img src="https://latex.codecogs.com/png.latex?%5C%7B%5Cmu,%20%5Cnu%5C%7D"> will also be a Normal-Gamma, i.e.</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0AP(%5Cmu,%20%5Cnu%7C%20%5Cdelta,%20%5Cmu_%7B0%7D,%20k_%7B0%7D,%20a,%20b,%20%5Crho)%20=%20NG(%5Cmu,%20%5Cnu;%20%5Ctilde%7B%5Cmu%7D_%7Bn%7D,%20%5Ctilde%7Bk%7D_%7Bn%7D,%20%5Ctilde%7Ba%7D_%7Bn%7D,%20%5Ctilde%7Bb%7D_%7Bn%7D)%0A"></p>
+<p>We are interested in the distribution over <img src="https://latex.codecogs.com/png.latex?%5Cmu">. In order to obtain that, we have to marginalise over <img src="https://latex.codecogs.com/png.latex?%5Cnu">. Doing so results in a Student’s t-distribution for <img src="https://latex.codecogs.com/png.latex?%5Cmu"> <span class="citation" data-cites="corani2015bayesian">(2015)</span></p>
+<p><img src="https://latex.codecogs.com/png.latex?%0AP(%5Cmu%7C%5Cdelta,%20%5Cmu_%7B0%7D,%20k_%7B0%7D,%20a,%20b,%20%5Crho)%20=%20St(%5Cmu;%202%5Ctilde%7Ba%7D_%7Bn%7D,%20%5Ctilde%7B%5Cmu%7D_%7Bn%7D,%20%5Cfrac%7B%5Ctilde%7Bb%7D_%7Bn%7D%5Ctilde%7Bk%7D_%7Bn%7D%7D%7B%5Ctilde%7Ba%7D_%7Bn%7D%7D)%0A"></p>
+<div class="page-columns page-full"><p>The expression for the parameters of the Student distribution are a little unwieldy, however if we use what is called a <em>matching prior</em><sup>2</sup> then this is simplified. We use the matching prior given by <img src="https://latex.codecogs.com/png.latex?%5Cmu_%7B0%7D%20=%200">, <img src="https://latex.codecogs.com/png.latex?k_%7B0%7D%20%5Crightarrow%20%5Cinfty">, <img src="https://latex.codecogs.com/png.latex?a%20=%20-1/2"> and <img src="https://latex.codecogs.com/png.latex?b%20=%200"> to get:</p><div class="no-row-height column-margin column-container"><li id="fn2"><p><sup>2</sup>&nbsp;A <em>matching prior</em> is a prior for which posterior probability statements about the parameter also have an interpretation as confidence statements in the sampling model; i.e.&nbsp;the posterior will return properties that match the frequentist’s analysis.</p></li></div></div>
+<p><img src="https://latex.codecogs.com/png.latex?%0ASt(%5Cmu;%20n%20-%201,%20%5Chat%7B%5Cdelta%7D,%20(%5Cfrac%7B1%7D%7Bn%7D%20+%20%5Cfrac%7B%5Crho%7D%7B1%20-%20%5Crho%7D)%5Chat%7B%5Csigma%7D%5E%7B2%7D)%0A"></p>
+<p>where <img src="https://latex.codecogs.com/png.latex?%5Chat%7B%5Cdelta%7D%20=%20%5Cfrac%7B%5CSigma_%7Bi%20=%201%7D%5E%7Bn%7D%20%5Cdelta_%7Bi%7D%7D%7Bn%7D"> and <img src="https://latex.codecogs.com/png.latex?%5Chat%7B%5Csigma%7D%5E%7B2%7D%20=%20%5Cfrac%7B%5CSigma_%7Bi%20=%201%7D%5E%7Bn%7D(%5Cdelta_%7Bi%7D%20-%20%5Chat%7B%5Cdelta%7D)%5E%7B2%7D%7D%7Bn%20-%201%7D"></p>
+</section>
+<section id="time-to-code-this-up" class="level2">
+<h2 class="anchored" data-anchor-id="time-to-code-this-up">Time to code this up!</h2>
+<div class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="im" style="color: #00769E;">from</span> time <span class="im" style="color: #00769E;">import</span> perf_counter</span>
+<span id="cb1-2"><span class="im" style="color: #00769E;">import</span> matplotlib.pyplot <span class="im" style="color: #00769E;">as</span> plt</span>
+<span id="cb1-3"><span class="im" style="color: #00769E;">import</span> numpy <span class="im" style="color: #00769E;">as</span> np</span>
+<span id="cb1-4"><span class="im" style="color: #00769E;">from</span> scipy <span class="im" style="color: #00769E;">import</span> stats</span>
+<span id="cb1-5"><span class="im" style="color: #00769E;">from</span> sklearn.datasets <span class="im" style="color: #00769E;">import</span> make_moons</span>
+<span id="cb1-6"><span class="im" style="color: #00769E;">from</span> sklearn.model_selection <span class="im" style="color: #00769E;">import</span> RepeatedStratifiedKFold</span>
+<span id="cb1-7"><span class="im" style="color: #00769E;">from</span> sklearn.neural_network <span class="im" style="color: #00769E;">import</span> MLPClassifier</span>
+<span id="cb1-8"><span class="im" style="color: #00769E;">from</span> sklearn.ensemble <span class="im" style="color: #00769E;">import</span> RandomForestClassifier</span>
+<span id="cb1-9"><span class="im" style="color: #00769E;">from</span> sklearn.metrics <span class="im" style="color: #00769E;">import</span> f1_score</span></code></pre></div>
+</div>
+<p>To see this in action, the first thing we need is some data and repeated cross-validation predictions for two different algorithms.</p>
+<p>We use sklearn to make a <em>moons</em> dataset:</p>
+<div class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1">X, y <span class="op" style="color: #5E5E5E;">=</span> make_moons(n_samples<span class="op" style="color: #5E5E5E;">=</span><span class="dv" style="color: #AD0000;">600</span>, noise<span class="op" style="color: #5E5E5E;">=</span><span class="fl" style="color: #AD0000;">0.4</span>, random_state<span class="op" style="color: #5E5E5E;">=</span><span class="dv" style="color: #AD0000;">23</span>)</span></code></pre></div>
+</div>
+<p>This has an equal number of labels of each class.</p>
+<p>Now that we have the data, let’s run the repeated cross-validation for two models. Here we use a Random Forest and a neural network (MLPClassifier) classifier:</p>
+<div class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1">n_repetitions <span class="op" style="color: #5E5E5E;">=</span> <span class="dv" style="color: #AD0000;">10</span></span>
+<span id="cb3-2">n_folds <span class="op" style="color: #5E5E5E;">=</span> <span class="dv" style="color: #AD0000;">5</span></span>
+<span id="cb3-3"></span>
+<span id="cb3-4">RSKF <span class="op" style="color: #5E5E5E;">=</span> RepeatedStratifiedKFold(</span>
+<span id="cb3-5">  n_splits<span class="op" style="color: #5E5E5E;">=</span>n_folds, n_repeats<span class="op" style="color: #5E5E5E;">=</span>n_repetitions, random_state<span class="op" style="color: #5E5E5E;">=</span><span class="dv" style="color: #AD0000;">23</span></span>
+<span id="cb3-6">)</span>
+<span id="cb3-7"></span>
+<span id="cb3-8">model_1 <span class="op" style="color: #5E5E5E;">=</span> <span class="st" style="color: #20794D;">"RF"</span></span>
+<span id="cb3-9">model_2 <span class="op" style="color: #5E5E5E;">=</span> <span class="st" style="color: #20794D;">"MLP"</span></span>
+<span id="cb3-10">models <span class="op" style="color: #5E5E5E;">=</span> {</span>
+<span id="cb3-11">  model_1: RandomForestClassifier(),</span>
+<span id="cb3-12">  model_2: MLPClassifier(alpha<span class="op" style="color: #5E5E5E;">=</span><span class="dv" style="color: #AD0000;">1</span>, max_iter<span class="op" style="color: #5E5E5E;">=</span><span class="dv" style="color: #AD0000;">1_000</span>)</span>
+<span id="cb3-13">}</span>
+<span id="cb3-14"></span>
+<span id="cb3-15">model_scores <span class="op" style="color: #5E5E5E;">=</span> {}</span>
+<span id="cb3-16">model_times <span class="op" style="color: #5E5E5E;">=</span> {}</span>
+<span id="cb3-17"></span>
+<span id="cb3-18"><span class="cf" style="color: #003B4F;">for</span> model_name, model <span class="kw" style="color: #003B4F;">in</span> models.items():</span>
+<span id="cb3-19">  times_fit <span class="op" style="color: #5E5E5E;">=</span> []</span>
+<span id="cb3-20">  times_predict <span class="op" style="color: #5E5E5E;">=</span> []</span>
+<span id="cb3-21">  scores <span class="op" style="color: #5E5E5E;">=</span> []</span>
+<span id="cb3-22">  <span class="cf" style="color: #003B4F;">for</span> train_indices, test_indices <span class="kw" style="color: #003B4F;">in</span> RSKF.split(X, y):</span>
+<span id="cb3-23">    X_train, X_test <span class="op" style="color: #5E5E5E;">=</span> X[train_indices], X[test_indices]</span>
+<span id="cb3-24">    y_train, y_test <span class="op" style="color: #5E5E5E;">=</span> y[train_indices], y[test_indices]</span>
+<span id="cb3-25">    </span>
+<span id="cb3-26">    time_start <span class="op" style="color: #5E5E5E;">=</span> perf_counter()</span>
+<span id="cb3-27">    clf <span class="op" style="color: #5E5E5E;">=</span> model.fit(X_train, y_train)</span>
+<span id="cb3-28">    time_end <span class="op" style="color: #5E5E5E;">=</span> perf_counter()</span>
+<span id="cb3-29">    time_fit <span class="op" style="color: #5E5E5E;">=</span> time_end <span class="op" style="color: #5E5E5E;">-</span> time_start</span>
+<span id="cb3-30"></span>
+<span id="cb3-31">    time_start <span class="op" style="color: #5E5E5E;">=</span> perf_counter()</span>
+<span id="cb3-32">    y_pred <span class="op" style="color: #5E5E5E;">=</span> clf.predict(X_test)</span>
+<span id="cb3-33">    time_end <span class="op" style="color: #5E5E5E;">=</span> perf_counter()</span>
+<span id="cb3-34">    time_predict <span class="op" style="color: #5E5E5E;">=</span> time_end <span class="op" style="color: #5E5E5E;">-</span> time_start</span>
+<span id="cb3-35"></span>
+<span id="cb3-36">    f1 <span class="op" style="color: #5E5E5E;">=</span> f1_score(y_test, y_pred)</span>
+<span id="cb3-37"></span>
+<span id="cb3-38">    times_fit.append(time_fit)</span>
+<span id="cb3-39">    times_predict.append(time_predict)</span>
+<span id="cb3-40">    scores.append(f1)</span>
+<span id="cb3-41">  </span>
+<span id="cb3-42">  model_scores[model_name] <span class="op" style="color: #5E5E5E;">=</span> np.asarray(scores)</span>
+<span id="cb3-43">  model_times[model_name] <span class="op" style="color: #5E5E5E;">=</span> {</span>
+<span id="cb3-44">    <span class="st" style="color: #20794D;">"fit"</span>: times_fit,</span>
+<span id="cb3-45">    <span class="st" style="color: #20794D;">"predict"</span>: times_predict</span>
+<span id="cb3-46">  }</span></code></pre></div>
+</div>
+<p>Now that we have the scores for each model, let’s perform the test. We’ll first need to compute the array of differences, <img src="https://latex.codecogs.com/png.latex?%5Cdelta">, and then we’re in business.</p>
+<div class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><span class="co" style="color: #5E5E5E;"># * create array of differences; we do model_2 (MLP) - model_1 (RF)</span></span>
+<span id="cb4-2">delta <span class="op" style="color: #5E5E5E;">=</span> model_scores[model_2] <span class="op" style="color: #5E5E5E;">-</span> model_scores[model_1]</span></code></pre></div>
+</div>
+<div class="cell" data-execution_count="6">
+<details>
+<summary>Code for <code>compute_statistics</code></summary>
+<div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><span class="kw" style="color: #003B4F;">def</span> compute_statistics(</span>
+<span id="cb5-2">  perf_differences, n_repetitions,</span>
+<span id="cb5-3">  ):</span>
+<span id="cb5-4">  <span class="co" style="color: #5E5E5E;">"""</span></span>
+<span id="cb5-5"><span class="co" style="color: #5E5E5E;">  Given the m*k length array holding the scores for the m-repetitions of k-folds, will compute </span></span>
+<span id="cb5-6"><span class="co" style="color: #5E5E5E;">  the following statistics: the mean, the Nadeau-Bengio corrected </span></span>
+<span id="cb5-7"><span class="co" style="color: #5E5E5E;">  variance and the number of degrees of freedom for the t-distribution.</span></span>
+<span id="cb5-8"><span class="co" style="color: #5E5E5E;">  """</span></span>
+<span id="cb5-9">  mean <span class="op" style="color: #5E5E5E;">=</span> np.mean(perf_differences)</span>
+<span id="cb5-10">  variance <span class="op" style="color: #5E5E5E;">=</span> np.var(perf_differences, ddof<span class="op" style="color: #5E5E5E;">=</span><span class="dv" style="color: #AD0000;">1</span>)</span>
+<span id="cb5-11">  <span class="co" style="color: #5E5E5E;"># * Now account for the correlations across measurements with the </span></span>
+<span id="cb5-12">  <span class="co" style="color: #5E5E5E;"># * Nadeau-Bengio correction of variance</span></span>
+<span id="cb5-13">  num_of_measurements <span class="op" style="color: #5E5E5E;">=</span> perf_differences.size</span>
+<span id="cb5-14">  correlation <span class="op" style="color: #5E5E5E;">=</span> n_repetitions <span class="op" style="color: #5E5E5E;">/</span> num_of_measurements</span>
+<span id="cb5-15">  variance <span class="op" style="color: #5E5E5E;">*=</span> <span class="dv" style="color: #AD0000;">1</span> <span class="op" style="color: #5E5E5E;">/</span> num_of_measurements <span class="op" style="color: #5E5E5E;">+</span> correlation <span class="op" style="color: #5E5E5E;">/</span> (<span class="dv" style="color: #AD0000;">1</span> <span class="op" style="color: #5E5E5E;">-</span> correlation)</span>
+<span id="cb5-16">  <span class="cf" style="color: #003B4F;">return</span> mean.item(), variance.item(), num_of_measurements <span class="op" style="color: #5E5E5E;">-</span> <span class="dv" style="color: #AD0000;">1</span></span></code></pre></div>
+</details>
+</div>
+<div class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><span class="co" style="color: #5E5E5E;"># * obtain the relevant statistics</span></span>
+<span id="cb6-2">mean, variance, dof <span class="op" style="color: #5E5E5E;">=</span> compute_statistics(</span>
+<span id="cb6-3">  perf_differences<span class="op" style="color: #5E5E5E;">=</span>delta, n_repetitions<span class="op" style="color: #5E5E5E;">=</span>n_repetitions</span>
+<span id="cb6-4">)</span></code></pre></div>
+</div>
+<div class="cell" data-execution_count="8">
+<div class="cell-output cell-output-stdout">
+<pre><code>t-distribution statistics:
+mean 0.00451990557326873, 
+variance 0.00015217969221592226, 
+degrees of freedom 49.</code></pre>
+</div>
+</div>
+<p>One useful thing we can do is to select a <em>region of practical equivalence, ROPE</em>. This is a region where the difference in performance can be considered <em>practically equivalent</em>, i.e.&nbsp;a difference lying within the ROPE is an inconsequential difference. Clearly the choice of ROPE is subjective and will depend on the <em>metric</em> and the <em>scale</em> we use to compare the algorithms in addition to our understanding of equivalence in the given situation. See <span class="citation" data-cites="kruske2013best">Kruske (2013)</span> and <span class="citation" data-cites="benavoli2017timeforachange">Benavoli et al. (2017)</span> for more details.</p>
+<p>Here we will say that a difference of 1% in performance between the two models makes the performance practically equivalent.</p>
+<div class="cell" data-execution_count="9">
+<details>
+<summary>Code for <code>get_posteriors_from_t_distribution</code></summary>
+<div class="sourceCode cell-code" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><span class="kw" style="color: #003B4F;">def</span> get_posteriors_from_t_distribution(</span>
+<span id="cb8-2">  mean, variance, dof, rope<span class="op" style="color: #5E5E5E;">=</span>(<span class="fl" style="color: #AD0000;">0.0</span>, <span class="fl" style="color: #AD0000;">0.0</span>), precision<span class="op" style="color: #5E5E5E;">=</span><span class="dv" style="color: #AD0000;">4</span></span>
+<span id="cb8-3">):</span>
+<span id="cb8-4">  <span class="co" style="color: #5E5E5E;">"""Compute and return probability mass to the left of the given rope, </span></span>
+<span id="cb8-5"><span class="co" style="color: #5E5E5E;">  within the given rope and to the right of the given rope for a </span></span>
+<span id="cb8-6"><span class="co" style="color: #5E5E5E;">  t-distribution specified by the given mean, variance and degrees </span></span>
+<span id="cb8-7"><span class="co" style="color: #5E5E5E;">  of freedom. </span></span>
+<span id="cb8-8"><span class="co" style="color: #5E5E5E;">  NB: probabilities are computed from the cumulative Student distribution, not </span></span>
+<span id="cb8-9"><span class="co" style="color: #5E5E5E;">  from a sampled posterior.</span></span>
+<span id="cb8-10"><span class="co" style="color: #5E5E5E;">  """</span></span>
+<span id="cb8-11">  <span class="co" style="color: #5E5E5E;"># * Deal with the situation where the variance is very small by assigning entire </span></span>
+<span id="cb8-12">  <span class="co" style="color: #5E5E5E;"># * probability mass to the appropriate regions</span></span>
+<span id="cb8-13">  <span class="cf" style="color: #003B4F;">if</span> np.isclose(variance, <span class="fl" style="color: #AD0000;">0.0</span>):</span>
+<span id="cb8-14">    prob_left <span class="op" style="color: #5E5E5E;">=</span> <span class="bu" style="color: null;">float</span>(mean <span class="op" style="color: #5E5E5E;">&lt;</span> rope[<span class="dv" style="color: #AD0000;">0</span>])</span>
+<span id="cb8-15">    prob_right <span class="op" style="color: #5E5E5E;">=</span> <span class="bu" style="color: null;">float</span>(mean <span class="op" style="color: #5E5E5E;">&gt;</span> rope[<span class="dv" style="color: #AD0000;">1</span>])</span>
+<span id="cb8-16">  <span class="co" style="color: #5E5E5E;"># * Otherwise compute the probability for the specified t-distribution.</span></span>
+<span id="cb8-17">  <span class="cf" style="color: #003B4F;">else</span>: </span>
+<span id="cb8-18">    std <span class="op" style="color: #5E5E5E;">=</span> np.sqrt(variance)</span>
+<span id="cb8-19">    prob_left <span class="op" style="color: #5E5E5E;">=</span> stats.t.cdf(rope[<span class="dv" style="color: #AD0000;">0</span>], dof, loc<span class="op" style="color: #5E5E5E;">=</span>mean, scale<span class="op" style="color: #5E5E5E;">=</span>std)</span>
+<span id="cb8-20">    prob_right <span class="op" style="color: #5E5E5E;">=</span> <span class="dv" style="color: #AD0000;">1</span> <span class="op" style="color: #5E5E5E;">-</span> stats.t.cdf(rope[<span class="dv" style="color: #AD0000;">1</span>], dof, loc<span class="op" style="color: #5E5E5E;">=</span>mean, scale<span class="op" style="color: #5E5E5E;">=</span>std)</span>
+<span id="cb8-21">    prob_centre <span class="op" style="color: #5E5E5E;">=</span> <span class="dv" style="color: #AD0000;">1</span> <span class="op" style="color: #5E5E5E;">-</span> prob_left <span class="op" style="color: #5E5E5E;">-</span> prob_right</span>
+<span id="cb8-22">  <span class="cf" style="color: #003B4F;">return</span> [<span class="bu" style="color: null;">round</span>(p, precision) <span class="cf" style="color: #003B4F;">for</span> p <span class="kw" style="color: #003B4F;">in</span> [prob_left, prob_centre, prob_right]]</span></code></pre></div>
+</details>
+</div>
+<div class="cell" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><span class="co" style="color: #5E5E5E;"># * Select a Region of practical equivalence:</span></span>
+<span id="cb9-2">ROPE <span class="op" style="color: #5E5E5E;">=</span> (<span class="op" style="color: #5E5E5E;">-</span><span class="fl" style="color: #AD0000;">0.01</span>, <span class="fl" style="color: #AD0000;">0.01</span>)</span>
+<span id="cb9-3"></span>
+<span id="cb9-4">prob_model_1_better, prob_rope, prob_model_2_better <span class="op" style="color: #5E5E5E;">=</span> get_posteriors_from_t_distribution(</span>
+<span id="cb9-5">  mean<span class="op" style="color: #5E5E5E;">=</span>mean, variance<span class="op" style="color: #5E5E5E;">=</span>variance, dof<span class="op" style="color: #5E5E5E;">=</span>dof, rope<span class="op" style="color: #5E5E5E;">=</span>ROPE</span>
+<span id="cb9-6">)</span></code></pre></div>
+</div>
+<div class="cell" data-execution_count="11">
+<div class="cell-output cell-output-stdout">
+<pre><code>P(RF &gt; MLP) = 0.1224, 
+P(RF ~ MLP) = 0.5481, 
+P(RF &lt; MLP) = 0.3294</code></pre>
+</div>
+</div>
+<p>And what’s nicer, we can look at the distribution as the matching prior returns a posterior that is a t-distribution:</p>
+<div class="cell" data-execution_count="12">
+<div class="cell-output cell-output-display">
+<p><img src="https://ergodicedamame.github.io/blog/posts/bayesian-model-comparison/index_files/figure-html/cell-13-output-1.png" width="768" height="515"></p>
+</div>
+</div>
+<p>Since the posterior distribution informs us about the relative credibility values across the reals, from the posterior we get the uncertainty in the estimate. From this we can get a whole lot of useful information, for instance the Highest Density Intervals (HDIs), the mode, the mean, etc. Furthermore, equipped with the posterior distribution and the region of practical equivalence we can:</p>
+<ol type="1">
+<li>Estimate the posterior probability of a reasonable null hypothesis, i.e.&nbsp;if the difference in performance is within a couple of percentage points they may well be considered equivalent. This will be given by the area within the rope region, above denoted by <img src="https://latex.codecogs.com/png.latex?P(RF%20%5Csim%20MLP%20%7C%20D)">.</li>
+<li>Estimate the posterior probability that one model is better than the other, i.e.&nbsp;<img src="https://latex.codecogs.com/png.latex?P(RF%20%3E%20MLP%20%7C%20D)"> and <img src="https://latex.codecogs.com/png.latex?P(RF%20%3C%20MLP%20%7C%20D)">. These will be given by the areas on either side of the ROPE.</li>
+<li>Represent effect size and uncertainty.</li>
+</ol>
+</section>
+<section id="cost-sensitive-decisions" class="level2">
+<h2 class="anchored" data-anchor-id="cost-sensitive-decisions">Cost sensitive decisions</h2>
+<p>While we will be dealing with this in more detail in a separate blog post, let’s have a first stab.</p>
+<p>In the real world, it is usually the case that we want to reason and make decisions about situations based on the concept of <em>cost</em>. The choice of the cost measure should depend on how the system is going to be used, rather than on any inherent specification of the training process. The issue with doing this is that it is hard. It is hard because specifying a cost-aware loss function is non-trivial, because cost-specifications are domain specific, and becuase even in the case of roughly knowing what the costs are, using this information is hard, i.e.&nbsp;the specified weigthed cost may be a difficult objective for optimisers to work with. However if we can specify costs then decision making based on these would be the best way to work as this allows one to take into consideration the utility of the decision that will be made.</p>
+<p>In our situation, in order to do cost-sensitive analysis/decision making, all we need is to specify a cost function – we won’t need to run an optimisation on this objective function. This is a function that defines the loss (or cost) we incur in making a given decision (e.g.&nbsp;the wrong decision). A typical example is whether to give more importance to a false positive or a false negative. For our given situation and for the sake of exposition, let’s assume that we are interested in the time taken to fit the model as we will need to do it often. (Also because in our example, the models actually take the same time to predict.) We find that</p>
+<div class="cell" data-execution_count="13">
+<div class="cell-output cell-output-stdout">
+<pre><code>Median time to fit RF is 0.1138 s, 
+Median time to fit MLP is 0.7345 s, 
+Ratio MLP / RF is 6.45</code></pre>
+</div>
+</div>
+<p>That is, MLP is a lot slower to fit than RF. There are three decisions we can make</p>
+<ol type="1">
+<li>RF is better than MLP</li>
+<li>RF is equivalent to MLP</li>
+<li>RF is worse than MLP</li>
+</ol>
+<p>We consider the following cost-matrix:</p>
+<table class="table">
+<colgroup>
+<col style="width: 21%">
+<col style="width: 21%">
+<col style="width: 27%">
+<col style="width: 27%">
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>RF is better</th>
+<th>are equivalent</th>
+<th>MLP is better</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Choose RF</td>
+<td>0</td>
+<td>-5</td>
+<td>2</td>
+</tr>
+<tr class="even">
+<td>Choose MLP</td>
+<td>7</td>
+<td>5</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<p>where the <img src="https://latex.codecogs.com/png.latex?(i,%20j)">th entry is the cost incurred by making decision <img src="https://latex.codecogs.com/png.latex?i"> when <img src="https://latex.codecogs.com/png.latex?j"> is correct. Here we have a <img src="https://latex.codecogs.com/png.latex?2%20%5Ctimes%203"> matrix as we only consider the options of selecting either one model or the other, no abstention, or anything else.</p>
+<p>In this case we have:</p>
+<ul>
+<li>cost of choosing the Random Forest is:
+<ul>
+<li>0 if it is better,</li>
+<li>-5 if they are equivalent as we save compute time,</li>
+<li>2 if MLP is better, as we would lose performance</li>
+</ul></li>
+<li>cost of choosing the MLPClassifier is:
+<ul>
+<li>7 if RF is better because we pay for computational and performance cost,</li>
+<li>5 if they are equivalent as we add to the compute time,</li>
+<li>0 if MLP is indeed better</li>
+</ul></li>
+</ul>
+<p>The <em>expected cost</em> can then be obtained by multiplying the cost matrix with the relevant posterior probabilities. In this case, the relevant probabilities are <img src="https://latex.codecogs.com/png.latex?P(RF%20%3E%20MLP%20%7C%20D)">, <img src="https://latex.codecogs.com/png.latex?P(RF%20%5Csim%20MLP%20%7C%20D)"> and <img src="https://latex.codecogs.com/png.latex?P(RF%20%3C%20MLP%20%7C%20D)">.</p>
+<div class="cell" data-execution_count="14">
+<div class="sourceCode cell-code" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1">cost_matrix <span class="op" style="color: #5E5E5E;">=</span> np.array([</span>
+<span id="cb12-2">  [<span class="fl" style="color: #AD0000;">0.</span>, <span class="op" style="color: #5E5E5E;">-</span><span class="fl" style="color: #AD0000;">5.</span>, <span class="fl" style="color: #AD0000;">2.</span>],</span>
+<span id="cb12-3">  [<span class="fl" style="color: #AD0000;">7.</span>, <span class="fl" style="color: #AD0000;">5.</span>, <span class="fl" style="color: #AD0000;">0.</span>],</span>
+<span id="cb12-4">])</span>
+<span id="cb12-5"></span>
+<span id="cb12-6">probabilities <span class="op" style="color: #5E5E5E;">=</span> np.array([</span>
+<span id="cb12-7">  prob_model_1_better, </span>
+<span id="cb12-8">  prob_rope, </span>
+<span id="cb12-9">  prob_model_2_better</span>
+<span id="cb12-10">])</span>
+<span id="cb12-11"></span>
+<span id="cb12-12">expected_cost <span class="op" style="color: #5E5E5E;">=</span> cost_matrix.dot(probabilities)</span></code></pre></div>
+</div>
+<div class="cell" data-execution_count="15">
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Cost of deciding on RF: -2.0817
+
+Cost of deciding on MLP: 3.5973</code></pre>
+</div>
+</div>
+<p>The lowest cost would determine the optimal decision. We see that we would incur a significant cost in choosing MLP over RF. Of course, we could have made things even more extreme by specifying more aggressive costs. And further, we could have extended the possibilities, e.g.&nbsp;adding a row for “no decision made”.</p>
+
+
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-benavoli2017timeforachange" class="csl-entry">
+Benavoli et al. 2017. <span>“Time for a Change: A Tutorial for Comparing Multiple Classifiers Through Bayesian Analysis.”</span>
+</div>
+<div id="ref-bouckaert2003choosing" class="csl-entry">
+Bouckaert, RR. 2003. <span>“Choosing Between Two Learning Algorithms Based on Calibrated Tests.”</span> In <em>ICML</em>, 3:51–58.
+</div>
+<div id="ref-corani2015bayesian" class="csl-entry">
+Corani, G, and A Benavoli. 2015. <span>“A Bayesian Approach for Comparing Cross-Validated Algorithms on Multiple Data Sets.”</span> <em>Machine Learning</em> 100 (2): 285–304.
+</div>
+<div id="ref-kruske2013best" class="csl-entry">
+Kruske, JK. 2013. <span>“Bayesian Estimation Supersedes the t Test.”</span> <em>Journal of Experimental Psychology: General</em> 142 (2): 573–603.
+</div>
+<div id="ref-nadeaubengio2003" class="csl-entry">
+Nadeau, C, and Y Bengio. 2003. <span>“Inference for the Generalization Error.”</span> <em>Machine Learning</em> 52: 239–81.
+</div>
+</div></section><section class="quarto-appendix-contents"><h2 class="anchored quarto-appendix-heading">Reuse</h2><div quarto-reuse="quarto-reuse" class="quarto-appendix-contents"><a rel="license" href="https://creativecommons.org/licenses/by/4.0/">https://creativecommons.org/licenses/by/4.0/</a></div></section></div> ]]></description>
+  <category>ML</category>
+  <category>Theory</category>
+  <category>Model evaluation</category>
+  <category>Bayesian</category>
+  <category>Cross-validation</category>
+  <guid>https://ergodicedamame.github.io/blog/posts/bayesian-model-comparison/index.html</guid>
+  <pubDate>Sat, 19 Nov 2022 00:00:00 GMT</pubDate>
+  <media:content url="https://ergodicedamame.github.io/blog/posts/bayesian-model-comparison/thumb.png" medium="image" type="image/png" height="97" width="144"/>
+</item>
 <item>
   <title>Generative vs. discriminative models</title>
   <link>https://ergodicedamame.github.io/blog/posts/discriminative-vs-generative/index.html</link>
