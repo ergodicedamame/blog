@@ -324,13 +324,12 @@ def get_posteriors_from_t_distribution(
   if np.isclose(variance, 0.0):
     prob_left = float(mean < rope[0])
     prob_right = float(mean > rope[1])
-    prob_centre = 0.0
   # * Otherwise compute the probability for the specified t-distribution.
   else: 
     std = np.sqrt(variance)
     prob_left = stats.t.cdf(rope[0], dof, loc=mean, scale=std)
     prob_right = 1 - stats.t.cdf(rope[1], dof, loc=mean, scale=std)
-    prob_centre = 1 - prob_left - prob_right
+  prob_centre = 1 - prob_left - prob_right
   return [round(p, precision) for p in [prob_left, prob_centre, prob_right]]
 ```
 
