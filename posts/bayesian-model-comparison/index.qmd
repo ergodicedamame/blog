@@ -182,6 +182,7 @@ where $\hat{\delta} = \frac{\Sigma_{i = 1}^{n} \delta_{i}}{n}$ and $\hat{\sigma}
 ## Time to code this up!
 
 ```{python}
+from time import perf_counter
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy import stats
@@ -190,10 +191,10 @@ from sklearn.model_selection import RepeatedStratifiedKFold
 from sklearn.neural_network import MLPClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import f1_score
-from time import perf_counter
 ```
 
 To see this in action, the first thing we need is some data and repeated cross-validation predictions for two different algorithms.
+
 We use sklearn to make a *moons* dataset:
 
 ```{python}
@@ -226,7 +227,7 @@ for model_name, model in models.items():
   times_fit = []
   times_predict = []
   scores = []
-  for i, (train_indices, test_indices) in enumerate(RSKF.split(X, y)):
+  for train_indices, test_indices in RSKF.split(X, y):
     X_train, X_test = X[train_indices], X[test_indices]
     y_train, y_test = y[train_indices], y[test_indices]
     
@@ -263,7 +264,7 @@ delta = model_scores[model_2] - model_scores[model_1]
 
 ```{python}
 #| code-fold: true
-#| code-summary: code for `compute_statistics`
+#| code-summary: Code for `compute_statistics`
 def compute_statistics(
   perf_differences, n_repetitions,
   ):
@@ -289,6 +290,16 @@ mean, variance, dof = compute_statistics(
 )
 ```
 
+```{python}
+#| echo: false
+print(
+  f"t-distribution statistics:"
+  f"\nmean {mean}, "
+  f"\nvariance {variance}, "
+  f"\ndegrees of freedom {dof}."
+)
+```
+
 One useful thing we can do is to select a *region of practical equivalence, ROPE*. 
 This is a region where the difference in performance can be considered *practically equivalent*, i.e. a difference lying within the ROPE is an inconsequential difference. 
 Clearly the choice of ROPE is subjective and will depend on the *metric* and the *scale* we use to compare the algorithms in addition to our understanding of equivalence in the given situation. See @kruske2013best and @benavoli2017timeforachange for more details.
@@ -297,8 +308,8 @@ Here we will say that a difference of 1% in performance between the two models m
 
 ```{python}
 #| code-fold: true
-#| code-summary: code for `get_t_dist_posterior_probs`
-def get_t_dist_posterior_probs(
+#| code-summary: Code for `get_posteriors_from_t_distribution`
+def get_posteriors_from_t_distribution(
   mean, variance, dof, rope=(0.0, 0.0), precision=4
 ):
   """Compute and return probability mass to the left of the given rope, 
@@ -316,17 +327,17 @@ def get_t_dist_posterior_probs(
   # * Otherwise compute the probability for the specified t-distribution.
   else: 
     std = np.sqrt(variance)
-    prob_left = round(stats.t.cdf(rope[0], dof, loc=mean, scale=std), precision)
-    prob_right = round(1 - stats.t.cdf(rope[1], dof, loc=mean, scale=std), precision)
-    prob_centre = round(1 - prob_left - prob_right, precision)
-  return prob_left, prob_centre, prob_right
+    prob_left = stats.t.cdf(rope[0], dof, loc=mean, scale=std)
+    prob_right = 1 - stats.t.cdf(rope[1], dof, loc=mean, scale=std)
+    prob_centre = 1 - prob_left - prob_right
+  return [round(p, precision) for p in [prob_left, prob_centre, prob_right]]
 ```
 
 ```{python}
 # * Select a Region of practical equivalence:
 ROPE = (-0.01, 0.01)
 
-prob_model_1_better, prob_rope, prob_model_2_better = get_t_dist_posterior_probs(
+prob_model_1_better, prob_rope, prob_model_2_better = get_posteriors_from_t_distribution(
   mean=mean, variance=variance, dof=dof, rope=ROPE
 )
 ```
@@ -376,7 +387,7 @@ ax.fill_between(
   x[(ROPE[0] <= x) & (x <= ROPE[1])], 
   y[(ROPE[0] <= x) & (x <= ROPE[1])], 
   np.zeros(n_points)[(ROPE[0] <= x) & (x <= ROPE[1])], 
-  color="purple", 
+  color="y", 
   alpha=0.7, 
   label=f"P({model_1} ~ {model_2})"
 )
@@ -384,7 +395,7 @@ ax.fill_between(
   x[x > ROPE[1]], 
   y[x > ROPE[1]], 
   np.zeros(n_points)[x > ROPE[1]], 
-  color="y", 
+  color="purple", 
   alpha=0.7, 
   label=f"P({model_1} < {model_2})"
 )
@@ -418,7 +429,7 @@ These will be given by the areas on either side of the ROPE.
 While we will be dealing with this in more detail in a separate blog post, let's have a first stab.
 
 In the real world, it is usually the case that we want to reason and make decisions about situations based on the concept of *cost*. 
-Phrased differently, the choice of the cost measure should depend on how the system is going to be used, rather than on any inherent specification of the training process.
+The choice of the cost measure should depend on how the system is going to be used, rather than on any inherent specification of the training process.
 The issue with doing this is that it is hard. 
 It is hard because specifying a cost-aware loss function is non-trivial, because cost-specifications are domain specific, and becuase even in the case of roughly knowing what the costs are, using this information is hard, i.e. the specified weigthed cost may be a difficult objective for optimisers to work with.
 However if we can specify costs then decision making based on these would be the best way to work as this allows one to take into consideration the utility of the decision that will be made.
@@ -477,7 +488,7 @@ In this case we have:
   + 5 if they are equivalent as we add to the compute time, 
   + 0 if MLP is indeed better
 
-The *expected cost* can then be obtained by multiplying the cost_matrix with the relevant posterior probabilities. 
+The *expected cost* can then be obtained by multiplying the cost matrix with the relevant posterior probabilities. 
 In this case, the relevant probabilities are $P(RF > MLP | D)$, $P(RF \sim MLP | D)$ and $P(RF < MLP | D)$.
 
 ```{python}
@@ -486,7 +497,11 @@ cost_matrix = np.array([
   [7., 5., 0.],
 ])
 
-probabilities = np.array([prob_model_1_better, prob_rope, prob_model_2_better])
+probabilities = np.array([
+  prob_model_1_better, 
+  prob_rope, 
+  prob_model_2_better
+])
 
 expected_cost = cost_matrix.dot(probabilities)
 ```
