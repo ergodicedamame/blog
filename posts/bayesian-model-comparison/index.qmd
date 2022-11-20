@@ -115,7 +115,7 @@ $$
 
 @nadeaubengio2003 show that the correlation between the cross-validation results is positive and therefore, since $\sigma^{2} > 0$, $\Sigma$ is invertible and positive definite.
 
-We have the basic setup but we will need to define a generative process; a prior over $\mu$ (the quantity of interest) and a likelihood (i.e. a sampling distribution). 
+With this we have the basic ingredient indicating how we want to model the interactions between the samples, however we still need to define a generative process; a prior over $\mu$ (the quantity of interest) and a likelihood (i.e. a sampling distribution). 
 For the sampling distribution of correlated observations assume the noise vector, $v$, to be distributed as a multivariate Normal distribution:
 $$
 P(\delta| \mu, \Sigma) = \frac{
@@ -138,7 +138,7 @@ The main points and heuristics behind this choice for the correlation factor are
 
 * The real $\rho$ is unknown, in fact usually this is just set to $0$ meaning that correlation is not accounted for.
 This can lead to underestimates of the estimated variance. 
-In the paper the authors propose $\rho=\rho_{0}=\frac{n_{\text{test}}}{n_{\text{total}}}$. 
+In the paper the authors propose $\rho=\frac{n_{\text{test}}}{n_{\text{total}}}$. 
 Note that this choice, as stated by the authors, is a gross approximation. 
 Yet it is better than pretending that $\rho=0$.
 
@@ -160,7 +160,7 @@ $$
 where $NG$ is the standard Normal-Gamma.
 This is a [*conjugate prior*](https://en.wikipedia.org/wiki/Normal-gamma_distribution), to the normal, which makes modelling easier. 
 
-Because of the conjugacy, the posterior over $\{\mu, \nu\}$ will be a Normal-Gamma also, i.e.
+Because of the conjugacy, the posterior over $\{\mu, \nu\}$ will also be a Normal-Gamma, i.e.
 $$
 P(\mu, \nu| \delta, \mu_{0}, k_{0}, a, b, \rho) = NG(\mu, \nu; \tilde{\mu}_{n}, \tilde{k}_{n}, \tilde{a}_{n}, \tilde{b}_{n})
 $$
@@ -268,7 +268,7 @@ def compute_statistics(
   perf_differences, n_repetitions,
   ):
   """
-  Given the m*k length array holind m-repetitions of k-fols, will compute 
+  Given the m*k length array holding the scores for the m-repetitions of k-folds, will compute 
   the following statistics: the mean, the Nadeau-Bengio corrected 
   variance and the number of degrees of freedom for the t-distribution.
   """
@@ -291,7 +291,7 @@ mean, variance, dof = compute_statistics(
 
 One useful thing we can do is to select a *region of practical equivalence, ROPE*. 
 This is a region where the difference in performance can be considered *practically equivalent*, i.e. a difference lying within the ROPE is an inconsequential difference. 
-Clearly the choice of ROPE is subjective and will depend on the *metric* and the *scale* we use to compare algorithms in addition to our understanding of equivalence in the given situation. See @kruske2013best and @benavoli2017timeforachange for more details.
+Clearly the choice of ROPE is subjective and will depend on the *metric* and the *scale* we use to compare the algorithms in addition to our understanding of equivalence in the given situation. See @kruske2013best and @benavoli2017timeforachange for more details.
 
 Here we will say that a difference of 1% in performance between the two models makes the performance practically equivalent.
 
@@ -417,7 +417,7 @@ These will be given by the areas on either side of the ROPE.
 
 While we will be dealing with this in more detail in a separate blog post, let's have a first stab.
 
-In the real world, it is usually the case that we want to reason about situations and make decisions based on costs. 
+In the real world, it is usually the case that we want to reason and make decisions about situations based on the concept of *cost*. 
 Phrased differently, the choice of the cost measure should depend on how the system is going to be used, rather than on any inherent specification of the training process.
 The issue with doing this is that it is hard. 
 It is hard because specifying a cost-aware loss function is non-trivial, because cost-specifications are domain specific, and becuase even in the case of roughly knowing what the costs are, using this information is hard, i.e. the specified weigthed cost may be a difficult objective for optimisers to work with.
