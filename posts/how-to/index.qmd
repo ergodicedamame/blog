@@ -4,7 +4,7 @@ subtitle: "Notes on how the site was set up. And how to blog using quarto."
 # author: ""
 date: "2022/03/06"
 image: "quarto.png"
-categories: [how-to]
+categories: [How-to]
 ---
 
 _This is a minimal, living document to remind ourselves how we set up the blog, and how to write on it. We will update it as needed. It may turn out to be useful more generally, but the best place to look is the [quarto](https://quarto.org/) site._
@@ -26,8 +26,9 @@ Provided by [giscus](https://giscus.app/), which links to github Discussions, se
 ## Writing posts
 
 - All posts should be stored as .qmd files, indeed .Rmd and .ipynb are included in the .gitignore.
-- jupytext allows to [link](https://jupytext.readthedocs.io/en/latest/formats.html#quarto) .ipnb and .qmd notebooks, one simply needs to configure it, or use `jupytext --to ipynb index.qmd` for individual posts.
-- every post should have its own folder in the posts/ folder, as outlined in quarto docs.
-- quarto allows to render the blog locally as one works on a new post (or any other changes) using `quarto preview`. This is live-reloaded whenever we save.
+- jupytext allows to [link](https://jupytext.readthedocs.io/en/latest/formats.html#quarto) .ipnb and .qmd notebooks. This is set up in the .jupytext.toml file. One can also use `jupytext --to ipynb index.qmd` for individual posts.
+- Every post should have its own folder in the posts/ folder, as outlined in quarto docs.
+- Quarto allows to render the blog locally as one works on a new post (or any other changes) using `quarto preview`. This is live-reloaded whenever we save.
+- Contents of _freeze should be committed, as the CI does not rebuild the posts. This could lead to posts breaking if dependencies change, etc. and is advised against in the quarto docs.
 
 NOTE: Any rendered content, in the docs/ folder, should not be pushed to the repository, but we cannot (simply) add it to the .gitignore, as this would break the CI which pushes the contents of docs/ to the pages branch.
