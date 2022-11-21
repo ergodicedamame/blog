@@ -1,0 +1,3 @@
+# Always pair ipynb notebooks to ... files
+formats = "ipynb,qmd"
+
