@@ -8,6 +8,7 @@ categories:
   - Model evaluation
   - Bayesian
   - Cross-validation
+  - Cost sensitive analysis
 bibliography: ../references.bib
 jupyter:
   jupytext:
