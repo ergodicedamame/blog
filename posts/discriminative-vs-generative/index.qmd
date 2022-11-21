@@ -3,7 +3,7 @@ title: "Generative vs. discriminative models"
 subtitle: "Thinking through the differences between generative and discriminative models."
 date: "2022/06/13"
 image: "graph.png"
-categories: [ML, theory, factor graphs, PGMs]
+categories: [ML, Factor graphs, PGMs]
 echo: false
 jupyter:
   jupytext:

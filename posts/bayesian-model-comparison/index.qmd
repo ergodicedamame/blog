@@ -5,10 +5,10 @@ date: 2022/11/19
 image: thumb.png
 categories:
   - ML
-  - Theory
   - Model evaluation
   - Bayesian
   - Cross-validation
+  - Cost sensitive analysis
 bibliography: ../references.bib
 jupyter:
   jupytext:
@@ -29,8 +29,7 @@ jupyter:
 !pip install -r requirements.txt
 ```
 
-Robust model evaluation should be second nature for those of us that work with data and 
-predictive models. 
+Robust model evaluation should be second nature for those of us that work with data and predictive models. 
 When determining whether one model is better than another, there are many techniques that one can use.
 Very common ones include *bootstrapping* and *cross-validation*. 
 

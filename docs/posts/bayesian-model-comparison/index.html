@@ -208,10 +208,10 @@ div.csl-indent {
 <p class="subtitle lead">Model selection via a Bayesian correlated t-test.</p>
   <div class="quarto-categories">
     <div class="quarto-category">ML</div>
-    <div class="quarto-category">Theory</div>
     <div class="quarto-category">Model evaluation</div>
     <div class="quarto-category">Bayesian</div>
     <div class="quarto-category">Cross-validation</div>
+    <div class="quarto-category">Cost sensitive analysis</div>
   </div>
   </div>
 
@@ -244,7 +244,7 @@ div.csl-indent {
 \]</span></p>
 <p>where <span class="math inline">\(n=mk\)</span>. Denote the sample mean and sample variance of the differences as <span class="math inline">\(\hat{\delta}\)</span> and <span class="math inline">\(\hat{\sigma}^{2}\)</span>.</p>
 <p>What can we say about these samples? Well, one thing is that these samples are almost certainly <em>noisy</em> observations of an underlying true difference of performance between the two algorithms. That is, there exist a hidden performance difference which we don’t know but that manifest itself, with noise, through these samples. For instance, if we assume that the <span class="math inline">\(\delta_{i}\)</span> s are i.i.d. then we could say that the <span class="math inline">\(\delta_{i}\)</span> are samples from a distribution with a true underlying mean, which would be the mean of interest to us. We could then further assign a prior distribution to that true mean (and any other parameters in the specification of the sampling distribution) and, after observing some samples, perform inference to construct the posterior distribution over the true mean, given the observed data. This is the standard paradigm of Bayesian modelling.</p>
-<p>There are infinite ways to model such a process but we can follow the aphorism, gifted to us by <a href="https://en.wikipedia.org/wiki/All_models_are_wrong_">George Box</a>, that none of them will be correct, but some of them may be useful. In particular, the assumtions that we bake into the model will make the model more or less useful. Oversimplifying assumptions would lead us to a model that is not able to describe the underlying process. Complex interactions would lead to a model that is intractable. Of course these days, with powerful probabilist programming languages, it is much easier to build a complex model and have a black-box inference algorithm that will give us results. This, however, isn’t a free meal. Complex models, especially hierachical ones, lead to complex inference processes that require expertise to diagnose. Moreover, the choce of priors will also become a delicate issue.</p>
+<p>There are infinite ways to model such a process but we can follow the aphorism, gifted to us by <a href="https://en.wikipedia.org/wiki/All_models_are_wrong_">George Box</a>, that none of them will be correct, but some of them may be useful. In particular, the assumtions that we bake into the model will make the model more or less useful. Oversimplifying assumptions would lead us to a model that is not able to describe the underlying process. Complex interactions would lead to a model that is intractable. Of course these days, with powerful probabilist programming languages, it is much easier to build a complex model and have a black-box inference algorithm that will give us results. This, however, isn’t a free meal. Complex models, especially hierachical ones, lead to complex inference processes that require expertise to diagnose. Moreover, the choice of priors will also become a delicate issue.</p>
 <p>In general, we need to balance two things:</p>
 <ol type="1">
 <li>the modelling assumptions,</li>
@@ -304,7 +304,7 @@ The idea behind the choice of correlation
 <p>Choose the joint prior for the mean and precision parameters of the Normal distribution to be</p>
 <p><span class="math display">\[P(\mu, \nu | \mu_{0}, k_{0}, a, b) = NG(\mu, \nu; \mu_{0}, k_{0}, a, b)
 \]</span></p>
-<p>where <span class="math inline">\(NG\)</span> is the standard Normal-Gamma. This is a <a href="https://en.wikipedia.org/wiki/Normal-gamma_distribution"><em>conjugate prior</em></a>, to the normal, which makes modelling easier.</p>
+<p>where <span class="math inline">\(NG\)</span> is the standard Normal-Gamma. This is a <a href="https://en.wikipedia.org/wiki/Normal-gamma_distribution"><em>conjugate prior</em></a>, to the normal, which makes inference easier.</p>
 <p>Because of the conjugacy, the posterior over <span class="math inline">\(\{\mu, \nu\}\)</span> will also be a Normal-Gamma, i.e.</p>
 <p><span class="math display">\[
 P(\mu, \nu| \delta, \mu_{0}, k_{0}, a, b, \rho) = NG(\mu, \nu; \tilde{\mu}_{n}, \tilde{k}_{n}, \tilde{a}_{n}, \tilde{b}_{n})
@@ -357,35 +357,32 @@ St(\mu; n - 1, \hat{\delta}, (\frac{1}{n} + \frac{\rho}{1 - \rho})\hat{\sigma}^{
 <span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>model_scores <span class="op">=</span> {}</span>
 <span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>model_times <span class="op">=</span> {}</span>
 <span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> model_name, model <span class="kw">in</span> models.items():</span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>  times_fit <span class="op">=</span> []</span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>  times_predict <span class="op">=</span> []</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="co"># * loop over the models</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> model_name, model <span class="kw">in</span> models.items():</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>  times_fit <span class="op">=</span> []</span>
 <span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>  scores <span class="op">=</span> []</span>
-<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> train_indices, test_indices <span class="kw">in</span> RSKF.split(X, y):</span>
-<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>    X_train, X_test <span class="op">=</span> X[train_indices], X[test_indices]</span>
-<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>    y_train, y_test <span class="op">=</span> y[train_indices], y[test_indices]</span>
-<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>    time_start <span class="op">=</span> perf_counter()</span>
-<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>    clf <span class="op">=</span> model.fit(X_train, y_train)</span>
-<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>    time_end <span class="op">=</span> perf_counter()</span>
-<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>    time_fit <span class="op">=</span> time_end <span class="op">-</span> time_start</span>
-<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>    time_start <span class="op">=</span> perf_counter()</span>
-<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>    y_pred <span class="op">=</span> clf.predict(X_test)</span>
-<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>    time_end <span class="op">=</span> perf_counter()</span>
-<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>    time_predict <span class="op">=</span> time_end <span class="op">-</span> time_start</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>  <span class="co"># * loop over the repeated-cv folds</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> train_indices, test_indices <span class="kw">in</span> RSKF.split(X, y):</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>    X_train, X_test <span class="op">=</span> X[train_indices], X[test_indices]</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>    y_train, y_test <span class="op">=</span> y[train_indices], y[test_indices]</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>    <span class="co"># * fit model and time fitting process</span></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>    time_start <span class="op">=</span> perf_counter()</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>    clf <span class="op">=</span> model.fit(X_train, y_train)</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>    time_end <span class="op">=</span> perf_counter()</span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>    time_fit <span class="op">=</span> time_end <span class="op">-</span> time_start</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>    <span class="co"># * get model prediction</span></span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>    y_pred <span class="op">=</span> clf.predict(X_test)</span>
 <span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>    f1 <span class="op">=</span> f1_score(y_test, y_pred)</span>
-<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>    times_fit.append(time_fit)</span>
-<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a>    times_predict.append(time_predict)</span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>    <span class="co"># * compute f1 score</span></span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>    f1 <span class="op">=</span> f1_score(y_test, y_pred)</span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a>    times_fit.append(time_fit)</span>
 <span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a>    scores.append(f1)</span>
 <span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a>  </span>
 <span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a>  model_scores[model_name] <span class="op">=</span> np.asarray(scores)</span>
-<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>  model_times[model_name] <span class="op">=</span> {</span>
-<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a>    <span class="st">"fit"</span>: times_fit,</span>
-<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a>    <span class="st">"predict"</span>: times_predict</span>
-<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a>  }</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>  model_times[model_name] <span class="op">=</span> {<span class="st">"fit"</span>: times_fit}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Now that we have the scores for each model, let’s perform the test. We’ll first need to compute the array of differences, <span class="math inline">\(\delta\)</span>, and then we’re in business.</p>
 <div class="cell" data-execution_count="5">
@@ -422,12 +419,12 @@ St(\mu; n - 1, \hat{\delta}, (\frac{1}{n} + \frac{\rho}{1 - \rho})\hat{\sigma}^{
 <div class="cell" data-execution_count="8">
 <div class="cell-output cell-output-stdout">
 <pre><code>t-distribution statistics:
-mean 0.00451990557326873, 
-variance 0.00015217969221592226, 
+mean 0.0031, 
+variance 0.00012, 
 degrees of freedom 49.</code></pre>
 </div>
 </div>
-<p>One useful thing we can do is to select a <em>region of practical equivalence, ROPE</em>. This is a region where the difference in performance can be considered <em>practically equivalent</em>, i.e.&nbsp;a difference lying within the ROPE is an inconsequential difference. Clearly the choice of ROPE is subjective and will depend on the <em>metric</em> and the <em>scale</em> we use to compare the algorithms in addition to our understanding of equivalence in the given situation. See <span class="citation" data-cites="kruske2013best">Kruske (<a href="#ref-kruske2013best" role="doc-biblioref">2013</a>)</span> and <span class="citation" data-cites="benavoli2017timeforachange">Benavoli et al. (<a href="#ref-benavoli2017timeforachange" role="doc-biblioref">2017</a>)</span> for more details.</p>
+<p>A useful thing we can do is to select a <em>region of practical equivalence, ROPE</em>. This is a region where the difference in performance can be considered <em>practically equivalent</em>, i.e.&nbsp;a difference lying within the ROPE is an inconsequential difference. Clearly the choice of ROPE is subjective and will depend on the <em>metric</em> and the <em>scale</em> we use to compare the algorithms in addition to our understanding of equivalence in the given situation. See <span class="citation" data-cites="kruske2013best">Kruske (<a href="#ref-kruske2013best" role="doc-biblioref">2013</a>)</span> and <span class="citation" data-cites="benavoli2017timeforachange">Benavoli et al. (<a href="#ref-benavoli2017timeforachange" role="doc-biblioref">2017</a>)</span> for more details.</p>
 <p>Here we will say that a difference of 1% in performance between the two models makes the performance practically equivalent.</p>
 <div class="cell" data-execution_count="9">
 <details>
@@ -452,7 +449,7 @@ degrees of freedom 49.</code></pre>
 <span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>    std <span class="op">=</span> np.sqrt(variance)</span>
 <span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>    prob_left <span class="op">=</span> stats.t.cdf(rope[<span class="dv">0</span>], dof, loc<span class="op">=</span>mean, scale<span class="op">=</span>std)</span>
 <span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>    prob_right <span class="op">=</span> <span class="dv">1</span> <span class="op">-</span> stats.t.cdf(rope[<span class="dv">1</span>], dof, loc<span class="op">=</span>mean, scale<span class="op">=</span>std)</span>
-<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>    prob_centre <span class="op">=</span> <span class="dv">1</span> <span class="op">-</span> prob_left <span class="op">-</span> prob_right</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>  prob_centre <span class="op">=</span> <span class="dv">1</span> <span class="op">-</span> prob_left <span class="op">-</span> prob_right</span>
 <span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> [<span class="bu">round</span>(p, precision) <span class="cf">for</span> p <span class="kw">in</span> [prob_left, prob_centre, prob_right]]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
@@ -466,9 +463,9 @@ degrees of freedom 49.</code></pre>
 </div>
 <div class="cell" data-execution_count="11">
 <div class="cell-output cell-output-stdout">
-<pre><code>P(RF &gt; MLP) = 0.1224, 
-P(RF ~ MLP) = 0.5481, 
-P(RF &lt; MLP) = 0.3294</code></pre>
+<pre><code>P(RF &gt; MLP) = 0.1183, 
+P(RF ~ MLP) = 0.6162, 
+P(RF &lt; MLP) = 0.2655</code></pre>
 </div>
 </div>
 <p>And what’s nicer, we can look at the distribution as the matching prior returns a posterior that is a t-distribution:</p>
@@ -486,14 +483,14 @@ P(RF &lt; MLP) = 0.3294</code></pre>
 </section>
 <section id="cost-sensitive-decisions" class="level2">
 <h2 class="anchored" data-anchor-id="cost-sensitive-decisions">Cost sensitive decisions</h2>
-<p>While we will be dealing with this in more detail in a separate blog post, let’s have a first stab.</p>
-<p>In the real world, it is usually the case that we want to reason and make decisions about situations based on the concept of <em>cost</em>. The choice of the cost measure should depend on how the system is going to be used, rather than on any inherent specification of the training process. The issue with doing this is that it is hard. It is hard because specifying a cost-aware loss function is non-trivial, because cost-specifications are domain specific, and becuase even in the case of roughly knowing what the costs are, using this information is hard, i.e.&nbsp;the specified weigthed cost may be a difficult objective for optimisers to work with. However if we can specify costs then decision making based on these would be the best way to work as this allows one to take into consideration the utility of the decision that will be made.</p>
+<p>While we will be dealing with this in more detail in a separate blog post, let’s take a first stab.</p>
+<p>In the real world, it is usually the case that we want to reason and make decisions about situations based on the concept of <em>cost</em>. The choice of the cost measure should depend on how the system is going to be used, rather than on any inherent specification of the training process. The issue with doing this is that it is hard. It is hard because specifying a cost-aware loss function is non-trivial, because cost-specifications are domain specific, and because even in the case of roughly knowing what the costs are, using this information is hard, i.e.&nbsp;the specified weigthed cost may be a difficult objective for optimisers to work with. However if we can specify costs then decision making based on these would be the best way to work as this allows one to take into consideration the utility of the decision that will be made.</p>
 <p>In our situation, in order to do cost-sensitive analysis/decision making, all we need is to specify a cost function – we won’t need to run an optimisation on this objective function. This is a function that defines the loss (or cost) we incur in making a given decision (e.g.&nbsp;the wrong decision). A typical example is whether to give more importance to a false positive or a false negative. For our given situation and for the sake of exposition, let’s assume that we are interested in the time taken to fit the model as we will need to do it often. (Also because in our example, the models actually take the same time to predict.) We find that</p>
 <div class="cell" data-execution_count="13">
 <div class="cell-output cell-output-stdout">
-<pre><code>Median time to fit RF is 0.1138 s, 
-Median time to fit MLP is 0.7345 s, 
-Ratio MLP / RF is 6.45</code></pre>
+<pre><code>Median time to fit RF is 0.1127 s, 
+Median time to fit MLP is 2.5925 s, 
+Ratio MLP / RF is 23.0</code></pre>
 </div>
 </div>
 <p>That is, MLP is a lot slower to fit than RF. There are three decisions we can make</p>
@@ -567,12 +564,12 @@ Ratio MLP / RF is 6.45</code></pre>
 <div class="cell" data-execution_count="15">
 <div class="cell-output cell-output-stdout">
 <pre><code>
-Cost of deciding on RF: -2.0817
+Cost of deciding on RF: -2.55
 
-Cost of deciding on MLP: 3.5973</code></pre>
+Cost of deciding on MLP: 3.9091</code></pre>
 </div>
 </div>
-<p>The lowest cost would determine the optimal decision. We see that we would incur a significant cost in choosing MLP over RF. Of course, we could have made things even more extreme by specifying more aggressive costs. And further, we could have extended the possibilities, e.g.&nbsp;adding a row for “no decision made”.</p>
+<p>The lowest expected cost would determine the optimal decision. We see that we would incur a significant cost in choosing MLP over RF. Of course, we could have made things even more extreme by specifying more aggressive costs. And further, we could have extended the possibilities, e.g.&nbsp;adding a row for “no decision made”.</p>
 
 
 

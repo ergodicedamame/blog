@@ -6,8 +6,8 @@ subtitle: >-
 date: 2022/03/19
 image: visualization.png
 categories:
-  - visualisation
-  - how-to
+  - Visualisation
+  - How-to
 jupyter:
   jupytext:
     text_representation:

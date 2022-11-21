@@ -124,7 +124,7 @@ ul.task-list li input[type="checkbox"] {
 <h1 class="title">Setting up a blog using quarto</h1>
 <p class="subtitle lead">Notes on how the site was set up. And how to blog using quarto.</p>
   <div class="quarto-categories">
-    <div class="quarto-category">how-to</div>
+    <div class="quarto-category">How-to</div>
   </div>
   </div>
 
@@ -164,9 +164,10 @@ ul.task-list li input[type="checkbox"] {
 <h2 class="anchored" data-anchor-id="writing-posts">Writing posts</h2>
 <ul>
 <li>All posts should be stored as .qmd files, indeed .Rmd and .ipynb are included in the .gitignore.</li>
-<li>jupytext allows to <a href="https://jupytext.readthedocs.io/en/latest/formats.html#quarto">link</a> .ipnb and .qmd notebooks, one simply needs to configure it, or use <code>jupytext --to ipynb index.qmd</code> for individual posts.</li>
-<li>every post should have its own folder in the posts/ folder, as outlined in quarto docs.</li>
-<li>quarto allows to render the blog locally as one works on a new post (or any other changes) using <code>quarto preview</code>. This is live-reloaded whenever we save.</li>
+<li>jupytext allows to <a href="https://jupytext.readthedocs.io/en/latest/formats.html#quarto">link</a> .ipnb and .qmd notebooks. This is set up in the .jupytext.toml file. One can also use <code>jupytext --to ipynb index.qmd</code> for individual posts.</li>
+<li>Every post should have its own folder in the posts/ folder, as outlined in quarto docs.</li>
+<li>Quarto allows to render the blog locally as one works on a new post (or any other changes) using <code>quarto preview</code>. This is live-reloaded whenever we save.</li>
+<li>Contents of _freeze should be committed, as the CI does not rebuild the posts. This could lead to posts breaking if dependencies change, etc. and is advised against in the quarto docs.</li>
 </ul>
 <p>NOTE: Any rendered content, in the docs/ folder, should not be pushed to the repository, but we cannot (simply) add it to the .gitignore, as this would break the CI which pushes the contents of docs/ to the pages branch.</p>
 
