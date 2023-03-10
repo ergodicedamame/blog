@@ -1,0 +1,105 @@
+---
+title: "René Marcelin and the centenary of the critical (dividing) surface"
+# subtitle: ""
+author: "Dayal C Strub"
+date: "2014/07/21"
+# image: ""
+# categories: []
+---
+
+:::{.callout-note}
+This is an old post from my PhD studies about dividing surfaces and rates of transport in Hamiltonian systems. 
+It has been a while, and I am no longer working on these topics and also am no longer in academia, so I am by now very fuzzy on the details. 
+I am reposting however, and keeping the original date, it as I think it has a number of interesting links and because Google Scholar still refers to it, but without a link, as the old blog died.
+:::
+
+This year, 2014, is the (overlooked) centenary of the _dividing surface approach_ to studying rates of transport in Hamiltonian systems. 
+The original application is finding chemical reaction rates and the approach, together with a few more approximations necessary for chemical systems, is generally referred to as _(variational) transition state theory_.
+
+Transition state theory germinated in the 1930s with the works of Wigner, Pelzer, Eyring, Polanyi, Evans and others (there are by now a staggering number of reviews of the subject, a nice and recent one is by Pollak and Talkner (2005)). 
+However, the dividing surface had been around since 1914, in the works of the less well known René Marcelin[^1].
+
+
+[^1]: His name and initials are often mistaken in the literature, see Laidler's (1985) comments.
+
+René Marcelin is the chemist that is credited with introducing the geometric understanding of state (or phase) space as the high dimensional space in which chemical reactions can be pictured as a trajectory[^2], the term "potential energy surface" (according to some), and most importantly[^3], as far as we are concerned here, the _dividing surface_, or _surface critique_ as he called it.
+
+[^2]: More generally, the credit for introducing the geometric understanding of state space is usually given to Boltzmann, see the discussion of the origin of the "phase space" by Nolte (2010).
+
+[^3]: Since the dividing surface is a (codimension-1) surface in state space, it is hard to discuss it's importance without the latter.
+
+Wanting to find the rate of the reaction between hydrogen and iodine, in which hydroiodic acid is formed, Marcelin (1915,p.158) says
+
+> "Occupons-nous tout d'abord du système I [reactants]; pour qu'une molécule l'abandonne il faudra, par exemple - nous l'avons vu -, qu'elle atteigne une certaine région de l'espace [state space] sous une obliquité convenable, que sa vitesse dépasse une certaine limite, que sa structure interne corresponde à une configuration instable, etc.; en d'autres termes, il faudra que, dans l'espace représentatif, elle franchisse une certaine surface $S_1$, que nous nommerons surface critique."
+
+My translation: "Let us first of all consider the reactants; for a molecule to leave this region, we require, for example - as we saw - for it to reach a certain region of state space, for its speed to exceed a certain limit, for its internal structure to correspond to an unstable configuration, etc.; in other words, it will have to cross a certain surface $S_1$, in state space, which we will call critical surface."
+
+He then goes on to find the number of product molecules.
+
+Actually, he introduces the dividing surface earlier, on p.156, whilst considering ensembles of arbitrarily complex molecules, represented in an $n$ degree of freedom state space.
+
+> "Divisons l'espace représentatif [state space] en deux par une surface $S$ et découpons autour d'un point $(p_1,...,p_n,q_1,...,q_n)$ un élément d$s$ de cette surface; on peut se demander quel est le nombre d$u$ des molécules qui le traverseront durant le temps très petit d$t$. En raisonnant comme on le fait en Hydrodynamique et sans introduire d'hypotheses nouvelles, Gibbs (1902, p.7) trouve ...
+Footnote: Il faut prendré ici le mot surface dans le sense généralisé; dans l'espace à 2$n$ dimesnions que nous considérons, une surface est représentée par une équation de la forme $f(p_1,...,p_n,q_1,...,q_n) = 0.$"
+
+My translation: "Divide the state space in two with a surface $S$ and cut out an element d$s$ of this surface around a point $(p_1, ..., p_n, q_1, ..., q_n)$; one may ask what is the number of molecules d$u$ that cross this element in an very short time d$t$. Reasoning as one does in hydrodynamics and without introducing any new hypotheses, Gibbs (1902, p.7) finds ...
+Footnote: In this context, the word surface must be understood in the generalized sense (hypersurface); in the 2$n$ dimensional state space that we are considering, a surface is represented by a (regular) equation of the form $f(p_1, ..., p_n, q_1, ..., q_n) = 0.$"
+
+He attributes the flux equation to Gibbs, as he is considering a general surface and flow. Note however that in the reference, Gibbs is considering the flux for a different reason.
+
+Marcelin doesn't comment further on the choice of the surface. The usual choice of local dividing surface for the basic transport scenario of flux over a saddle can already be found in Toller et al. 1985, whereas Robert and I (2014) showed how to construct a dividing manifold spanning a codimension-2 normally hyperbolic (invariant) submanifold (modulo a few more conditions). This generalises the local dividing surface construction about the index-1 critical points of the Hamiltonian.
+
+Let us now return to why this year is the centenary of the dividing surface. Most of the literature refers to Marcelin's 1915 article as the first article in which dividing surfaces appear (in Ch.2). However, he died early in WWI, as we find out on the first page of this posthumous 1915 article - "Tué à l'ennemie en september 1914" is placed as a footnote to his name. Laidler (1985) tells us that the 1915 article contains previously published results from 1914 (which can be verified, see bibliography below), as well as results from one of his two PhD theses, also defended in 1914. See also Laidler and King 1983 for a general history of the early developments of transition state theory (especially the "statistical-mechanics treatment" section on p.2660).
+
+__Question:__ Seeing as Wigner did not reference Marcelin in his 1937 and 1938 articles (in which, for the first time, we are invited to consider variations of the dividing surface in order to minimise the flux), whereas Keck did reference him (at least in his wonderful 1967 review of the subject), it would be interesting to find out when Marcelin's role as the father of the dividing surface was re-discovered/established[^4].
+
+[^4]: Of course, the idea of computing the flux through a codimension-1 surface is actually much older, and as we have seen Marcelin refers to Gibbs, but it would seem that Marcelin was the first to use the idea in this context.
+
+## Links to relevant articles by René Marcelin
+
+Finding such old articles is not always easy. However, they are finally starting to surface online (maybe because centenaries bring the gift of the end of copyright):
+
+R Marcelin, Contribution a l'étude de la cinétique physico-chimique, Annales de chimie et de physique, 3, 120-231, 1915
+(Coming soon to [Gallica](http://gallica.bnf.fr/ark:/12148/cb343780820/date.r=Annales+de+Physique.langFR)?)
+
+R Marcelin, [Expression des vitesses de transformation des systèmes physico-chimiques en fonction de l'affinité](http://gallica.bnf.fr/ark:/12148/bpt6k3111d/f116.image.r=comptes%20rendus%20hebdomadaires%20de%20l%27acad%C3%A9mie%20des%20sciences.langFR), Comptes Rendus Hebdomadaires de l'Académie des Sciences, 158, 116, 1914
+
+R Marcelin, [Influence de la température sur les vitesses de transformation des systèmes physico-chimiques](http://gallica.bnf.fr/ark:/12148/bpt6k3111d/f409.image.r=comptes%20rendus%20hebdomadaires%20de%20l%27acad%C3%A9mie%20des%20sciences.langFR), Comptes Rendus Hebdomadaires de l'Académie des Sciences, 158, 407, 1914
+
+R Marcelin, J. Chim. Phys. Phys.-Chim. Biol., 12, 451, 1914
+(Possibly available to some on [HathiTrust](http://catalog.hathitrust.org/Record/000681551). Any publicly available versions?)
+
+## References
+
+TODO use bibtex
+
+J W Gibbs, Elementary principles in statistical mechanics, Scribner's sons, NY, 1902
+
+J C Keck, Variational theory of reaction rates, Advances in Chemical Physics, vol. 13, ed. I Prigogine, Wiley, N.Y., pp. 85–121, 1967
+
+K J Laidler, Rene Marcelin (1885-1914), a short-lived genius of chemical kinetics, J. Chem. Edu., 62, 11, 1985
+
+K J Laidler and M C King, Development of transition-state theory, J. Phys. Chem., 87, 15, 1983
+
+K J Laidler, The World of Physical Chemistry, Oxford University Press, Oxford, 1993
+
+R S MacKay and D C Strub, Bifurcations of transition states. Morse bifurcations, Nonlinearity, 27,859, 2014
+
+D D Nolte, The tangled tale of phase space, Physics Today, 63, 4, 2010
+
+E Pollak and P Talkner, Reaction rate theory: What it was, where is it today, and where is it going?, CHAOS, 15, 026116, 2005
+
+Toller et al., Theory of classical diffusion jumps in solids, Phys. Rev. B, 32, 2082, 1985
+
+E P Wigner, Calculation of the rate of elementary association reactions, J. Chem. Phys., 5, 720–5, 1937 
+
+E P Wigner, The transition state method, Trans. Faraday Soc., 34, 29–41, 1938
+
+Some other sources:
+
+H Eyring, Physical chemistry: the past 100 years, Chem. Eng. News, 54, 15, 1976 (I cannot access it, so have not verified its contents.)
+
+J Guéron and M Magat, A history of physical chemistry in France, Ann. Rev. Phys. Chem., 22, 1-25, 1971
+
+K J Mysels, René Marcelin: Experimenter and Surface Scientist, J. Chem. Edu., 63, 9, 1986
+
+M J Nye, From chemical philosophy to theoretical chemistry, University of California Press, California, 1993
